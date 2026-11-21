@@ -27,6 +27,9 @@ static struct {
     uint32_t seed, opened, consumed;
     volatile uint32_t started;
     void *footer;
+    void *host_page;
+    void *parameter[2];
+    uintptr_t parameter_type[2];
     uintptr_t footer_type;
     unsigned painting,exit_down,clean_exit,octaves,length,rotation,lowvel,hivel,gate,view,roll,editing,knobdown,row,bpm,hits,root,scale,held;
     volatile unsigned queued,loop,next,playing,visible;
@@ -71,7 +74,6 @@ static void redraw(void) {
 static void clear_page(void) {
     stop();g.visible=0;
     g.clean_exit=g.footer!=0;
-    redraw();g.footer=0;
 }
 __attribute__((section(".controls"))) int genie_press(void *page,int pad,int vel) {
     if(pad==0x13 && SHIFT) {
@@ -157,20 +159,41 @@ static void dismiss_percentage(void) {
     while(i<3 && s[i]>='0' && s[i]<='9'){value=value*10+s[i]-'0';++i;}
     if(i && value<=100 && s[i]=='%' && !s[i+1])((void (*)(void))0x8001f731u)();
 }
+/* Clear the overlay before the compositor draws the restored stock widgets.
+ * Clearing in the footer callback erased stock widgets drawn earlier. */
+__attribute__((section(".roll"),noinline))
+static void restore_sound_generator(void *page){
+    if(g.host_page!=page || !SG_PAGE){
+        g.host_page=SG_PAGE?page:0;
+        g.footer=0;g.parameter[0]=0;g.parameter[1]=0;g.clean_exit=0;
+        return;
+    }
+    if(!g.clean_exit)return;
+    if(g.footer && *(uintptr_t *)g.footer==g.footer_type){
+        void *fb=*(void **)((uint8_t *)g.footer+0x84);
+        if(fb){
+            const int bounds[]={0,0,127,63};
+            COLOR(fb,0xffffff,0);
+            FILL(fb,bounds);
+        }
+        INVALIDATE(g.footer);
+    }
+    void *const *columns=(void *const *)((uint8_t *)page+0x1a6c);
+    for(unsigned i=0;i<3;++i)if(columns[i])INVALIDATE(columns[i]);
+    for(unsigned i=0;i<2;++i){
+        void *widget=g.parameter[i];
+        if(widget && *(uintptr_t *)widget==g.parameter_type[i])INVALIDATE(widget);
+    }
+    g.clean_exit=0;
+}
 void genie_poll(void *page) {
+    restore_sound_generator(page);
     OLD_POLL(page);
     uint32_t now=FRAMES;
     if(genie_bounce_poll(now,!SG_PAGE || !g.visible, !g.playing)) {
         g.started=now;g.next=0;__asm__ volatile("dmb" ::: "memory");g.playing=1;
     }
-    if(!g.visible){
-        if(g.clean_exit==2 && SG_PAGE){
-            void *const *columns=(void *const *)((uint8_t *)page+0x1a6c);
-            for(unsigned i=0;i<3;++i)if(columns[i])INVALIDATE(columns[i]);
-            g.clean_exit=0;
-        }
-        return;
-    }
+    if(!g.visible)return;
     if(!SG_PAGE){clear_page();return;}
     dismiss_percentage();
     int frame=now-g.opened<48000?20:(g.roll?g.head:(int)g.playing);
@@ -240,21 +263,27 @@ void genie_audio_tick(int frames){
     }
 }
 
-__attribute__((section(".controls"))) void genie_column(void *widget){
+__attribute__((section(".roll"))) void genie_column(void *widget){
     if(!g.visible || !SG_PAGE)((page_handler)0x83fe7595u)(widget);
 }
-/* The parameter widget paints its background and content separately. */
+/* The stock bar uses separate widgets for its background and its text. */
+__attribute__((section(".roll"),used,noinline))
+unsigned genie_track_parameter(void *widget,unsigned part){
+    if(!SG_PAGE)return 0;
+    if(g.host_page){
+        g.parameter[part]=widget;
+        g.parameter_type[part]=*(uintptr_t *)widget;
+    }
+    return g.visible;
+}
 __attribute__((section(".roll"))) void genie_parameter_background(void *widget){
-    if(!g.visible || !SG_PAGE)((page_handler)0x801239e9u)(widget);
+    if(!genie_track_parameter(widget,0))((page_handler)0x801239e9u)(widget);
 }
 /* Entry detour covers callers that bypass the bar's class draw pointer. */
-__attribute__((used,noinline)) unsigned genie_owns_display(void){
-    return g.visible && SG_PAGE;
-}
 __attribute__((naked,section(".controls"))) void genie_parameter_bar(void *widget){
     __asm__ volatile(
         "push {r0-r3,r4,lr}\n"
-        "bl genie_owns_display\n"
+        "movs r1,#1\nbl genie_track_parameter\n"
         "cmp r0,#0\n"
         "pop {r0-r3,r4,lr}\n"
         "bne 1f\n"
@@ -296,15 +325,6 @@ STRIP_WRAPPER(genie_rect_fill,"0xe58d")
 
 void genie_footer(void *widget){
     if(!SG_PAGE || !g.visible){
-        if(SG_PAGE && !g.visible && g.clean_exit==1){
-            void *fb=*(void **)((uint8_t *)widget+0x84);
-            if(fb){
-                const int bounds[]={0,0,127,63};
-                COLOR(fb,0xffffff,0);
-                FILL(fb,bounds);
-                g.clean_exit=2;
-            }
-        }
         OLD_FOOT(widget);
         if(!SG_PAGE)return;
     }

@@ -96,7 +96,7 @@ assert not background_draws, 'stock bar background drew while Genie was open'
 assert not bar_draws, 'stock PRM bar drew over Genie intro'
 assert not column_draws, 'stock column drew over Genie intro'
 # Only the widget invalidation is stubbed for this synthetic framebuffer.
-observe(0x800d0019,lambda uc,*_:m._ret())
+stub_invalidate=observe(0x800d0019,lambda uc,*_:m._ret())
 m.pad(15);m.pad(15,0)
 closed=[]
 def close_popup(uc,*_):
@@ -182,15 +182,26 @@ assert len(pitches)==5 and max(pitches)>=72 and all(60<=n<108 for n in pitches),
 print('Verified queue, cancellation, one-shot boundary, octave editing and undo',pitches)
 # EXIT from the piano roll consumes both edges without leaving Sound Generator.
 tap(14)
+background_widget=widget+0x100
+parameter_widget=widget+0x200
+m.w32(background_widget,0x80222000);m.w32(parameter_widget,0x80222100)
+m.call(word(0x8022209c),background_widget)
+m.call(word(0x80222130),parameter_widget)
 m.key(0x22,True)
 m.key(0x22,False)
 assert m.uc.mem_read(0x80245880,2)==bytes([0x1e,0]), 'EXIT left Sound Generator'
 rects.clear()
-m.call(word(0x802256fc),widget)
+restore_order=[]
+trace_fill=observe(0x800ce581,lambda uc,*_:restore_order.append('clear'))
+m.uc.hook_del(stub_invalidate)
+trace_dirty=observe(0x800d0019,lambda uc,*_: (restore_order.append(uc.reg_read(ar.UC_ARM_REG_R0)),m._ret()))
+tick(offset+6000*128)
 assert rects==[(0,0,127,63)], 'leaving Genie did not clear the display once'
+assert restore_order[0]=='clear' and {widget,background_widget,parameter_widget}<=set(restore_order),restore_order
+m.uc.hook_del(trace_fill);m.uc.hook_del(trace_dirty)
 rects.clear()
 m.call(word(0x802256fc),widget)
-assert not rects, 'stock footer kept clearing the display after Genie closed'
+assert not rects, 'stock footer erased the display after Genie closed'
 assert m.pad(0), 'stock Sound Generator input did not resume'
 m.call(word(0x8022bbd4),widget)
 m.call(word(0x80222130),widget)
