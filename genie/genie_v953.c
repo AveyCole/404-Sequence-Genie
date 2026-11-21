@@ -25,7 +25,7 @@ static struct {
     uint32_t seed, opened, last, started, consumed;
     void *footer;
     uintptr_t footer_type;
-    unsigned clean_exit,queued,octaves,loop,length,rotation,lowvel,hivel,gate,view,roll, editing, knobdown, row, bpm, hits, root, scale, next, playing, visible, held;
+    unsigned exit_down,clean_exit,queued,octaves,loop,length,rotation,lowvel,hivel,gate,view,roll, editing, knobdown, row, bpm, hits, root, scale, next, playing, visible, held;
     int note, head, drawn;
 } g;
 typedef struct {
@@ -165,7 +165,7 @@ void genie_poll(void *page) {
         }
         return;
     }
-    if(!SG_PAGE || (((volatile uint8_t *)0x80592448u)[4] & 4u) || now-g.last>24000){clear_page();return;}
+    if(!SG_PAGE || now-g.last>24000){clear_page();return;}
     g.last=now;
     dismiss_percentage();
     if(g.playing){
@@ -266,7 +266,15 @@ int genie_encoder(void *page,int id,int delta){
     return 0;
 }
 typedef int (*key_handler)(void *,int);
-int genie_key(void *page,int key){
+__attribute__((section(".roll"))) int genie_key(void *page,int key){
+    if(key==0x22 && (g.visible || g.exit_down)){
+        if(!g.exit_down){
+            if(genie_bounce_active())genie_bounce_poll(FRAMES,1,0);
+            else clear_page();
+        }
+        g.exit_down=1;
+        return 1;
+    }
     if(g.visible && genie_bounce_active())return 1;
     if(!g.visible || key!=0x31)return ((key_handler)0x8015c551u)(page,key);
     if(!g.knobdown){
@@ -276,6 +284,7 @@ int genie_key(void *page,int key){
     g.knobdown=1;return 1;
 }
 int genie_keyup(void *page,int key){
+    if(key==0x22 && g.exit_down){g.exit_down=0;return 1;}
     if(key==0x31 && g.knobdown){g.knobdown=0;return 1;}
     return ((key_handler)0x8015bf79u)(page,key);
 }

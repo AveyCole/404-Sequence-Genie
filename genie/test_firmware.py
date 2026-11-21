@@ -147,7 +147,11 @@ for step in range(128):
 pitches=[n for n,v in notes[30:] if v]
 assert len(pitches)==5 and max(pitches)>=72 and all(60<=n<108 for n in pitches),pitches
 print('Verified queue, cancellation, one-shot boundary, octave editing and undo',pitches)
-m.key(KEY_SHIFT,True);m.pad(SUB_PAD);m.pad(SUB_PAD,0);m.key(KEY_SHIFT,False)
+# EXIT from the piano roll consumes both edges without leaving Sound Generator.
+tap(14)
+m.key(0x22,True)
+m.key(0x22,False)
+assert m.uc.mem_read(0x80245880,2)==bytes([0x1e,0]), 'EXIT left Sound Generator'
 rects.clear()
 m.call(word(0x802256fc),widget)
 assert rects==[(0,0,127,63)], 'leaving Genie did not clear the display once'
