@@ -276,16 +276,32 @@ m.w32(capture_state,0)
 assert capture_block(0)[0][:2]==(10000,-10000)
 print('Bounce feed fades both sample edges, leaves other channels and stock captures unchanged')
 
+# Start playback on a render boundary after RX capture starts. The saved
+# window skips one warm-up phrase plus capture lead and effects latency.
+with (ROOT/'build/genie.elf').open('rb') as fp:
+    capture_clock=ELFFile(fp).get_section_by_name('.symtab').get_symbol_by_name('genie_bounce_clock')[0]['st_value']
+m.w32(capture_state,2)
+m.w32(capture_state+28,0)
+assert m.call(capture_clock)==0
+capture_block(64)
+assert m.call(capture_clock)==1
+window=128+75+1024
+assert word(capture_state+32)==window
+assert capture_block(window)[0][:2]==(0,0)
+assert m.call(capture_clock)==2
+assert capture_block(window+1024-64)[-1][:2]==(0,0)
+assert m.call(capture_clock)==3
+
 # Stock finalization can move START and leave extra recorder frames at END.
 # Exercise the exact range rewrite with a stereo file whose data begins at frame 16.
 with (ROOT/'build/genie.elf').open('rb') as fp:
     trim=ELFFile(fp).get_section_by_name('.symtab').get_symbol_by_name('set_loop_range')[0]['st_value']
-m.w32(capture_state+28,1024)
+m.w32(capture_state+28,window+1024)
 m.w32(0x82e0e970,0x3008c000)
 m.w32(0x3008c1c0,108)
 m.w32(0x82e495e4+8,2)
 m.w32(0x82e495e4+12,44)
-markers={0x67:32,0x68:1120,0x71:32}
+markers={0x67:32,0x68:window+1120,0x71:32}
 recharged=[]
 def read_marker(uc,*_):
     m._ret(markers[uc.reg_read(ar.UC_ARM_REG_R1)])
@@ -298,10 +314,10 @@ observe(0x800dda39,lambda uc,*_: (uc.reg_write(ar.UC_ARM_REG_R0,0),m._ret()))
 for address in (0x800d6391,0x800d7509):
     observe(address,lambda uc,*_: (recharged.append(1),m._ret()))
 assert m.call(trim)==1
-assert markers=={0x67:16,0x68:1040,0x71:16} and len(recharged)==2
+assert markers=={0x67:16+window,0x68:1040+window,0x71:16+window} and len(recharged)==2
 markers[0x68]=1000
 assert m.call(trim)==0 and markers[0x68]==1000
-print('Verified the exact faded loop range and rejection of a short take')
+print('Verified the second-pass capture window, exact faded loop range, and rejection of a short take')
 
 if len(sys.argv)>1:
     def render_release(firmware, kind, env=0, blocks_to_render=22):

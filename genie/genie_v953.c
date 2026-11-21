@@ -20,7 +20,8 @@ extern void genie_setup(uint8_t *,unsigned,unsigned,unsigned,unsigned,unsigned,u
 extern void genie_roll(uint8_t *,const sp_sequence *,unsigned,unsigned,int,unsigned);
 extern unsigned genie_bounce_active(void);
 extern void genie_bounce_start(unsigned,unsigned);
-extern unsigned genie_bounce_poll(unsigned,unsigned,unsigned);
+extern void genie_bounce_poll(unsigned,unsigned,unsigned);
+extern unsigned genie_bounce_clock(void);
 static struct {
     sp_sequence seq;
     uint8_t pixels[1024];
@@ -31,7 +32,7 @@ static struct {
     void *parameter[2];
     uintptr_t parameter_type[2];
     uintptr_t footer_type;
-    unsigned painting,exit_down,clean_exit,octaves,length,rotation,lowvel,hivel,gate,view,roll,editing,knobdown,row,bpm,hits,root,scale,held;
+    unsigned capturing,painting,exit_down,clean_exit,octaves,length,rotation,lowvel,hivel,gate,view,roll,editing,knobdown,row,bpm,hits,root,scale,held;
     volatile unsigned queued,loop,next,playing,visible;
     volatile int head;
     int drawn;
@@ -190,9 +191,7 @@ void genie_poll(void *page) {
     restore_sound_generator(page);
     OLD_POLL(page);
     uint32_t now=FRAMES;
-    if(genie_bounce_poll(now,!SG_PAGE || !g.visible, !g.playing)) {
-        g.started=now;g.next=0;__asm__ volatile("dmb" ::: "memory");g.playing=1;
-    }
+    genie_bounce_poll(now,!SG_PAGE || !g.visible,!g.playing);
     if(!g.visible)return;
     if(!SG_PAGE){clear_page();return;}
     dismiss_percentage();
@@ -242,13 +241,19 @@ static void start_voice(unsigned note,unsigned velocity){
 __attribute__((section(".clock"),used))
 void genie_audio_tick(int frames){
     ORIGINAL_ARP_TICK(frames);
-    if(!g.playing || !g.visible || !SG_PAGE){release_voice();return;}
+    if(!g.visible || !SG_PAGE){release_voice();return;}
+    unsigned capture=genie_bounce_clock();
+    if(capture==1){g.started=FRAMES;g.next=0;g.head=-1;g.capturing=1;g.playing=1;}
+    if(capture==3 || (g.capturing && !capture)){
+        g.capturing=0;stop();release_voice();return;
+    }
+    if(!g.playing){release_voice();return;}
     uint32_t elapsed=FRAMES-g.started;
     unsigned step=elapsed*g.bpm/720000u;
     if(step>=g.length){
         release_voice();
-        if(genie_bounce_active() || !(g.loop || g.queued)){stop();return;}
-        if(g.queued){remember();g.seed=g.seed*1664525u+1013904223u;generate();g.queued=0;}
+        if(!capture && !(g.loop || g.queued)){stop();return;}
+        if(!capture && g.queued){remember();g.seed=g.seed*1664525u+1013904223u;generate();g.queued=0;}
         g.started+=(g.length*720000u+g.bpm/2)/g.bpm;
         elapsed=FRAMES-g.started;
         step=elapsed*g.bpm/720000u;
