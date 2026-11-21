@@ -121,12 +121,11 @@ void genie_bounce_poll(unsigned now,unsigned cancel,unsigned finished){
 }
 
 /* Hand off on a render block after the recorder has consumed its first RX
- * packet. Keep the second pass so it starts with the same release tails as
- * steady live playback. The effects return is about 75 frames behind TX. */
+ * packet. Skip recorder lead-in and the estimated 75-frame effects return. */
 __attribute__((section(".capture_sync"),noinline))
 unsigned genie_bounce_clock(void){
     if(take.phase==2 && take.written && U8(0x82e0e96au)==2){
-        take.window=take.written+75+take.frames;
+        take.window=take.written+75;
         take.phase=3;
         return 1;
     }

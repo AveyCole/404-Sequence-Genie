@@ -182,11 +182,12 @@ assert len(pitches)==5 and max(pitches)>=72 and all(60<=n<108 for n in pitches),
 print('Verified queue, cancellation, one-shot boundary, octave editing and undo',pitches)
 # EXIT from the piano roll consumes both edges without leaving Sound Generator.
 tap(14)
-background_widget=widget+0x100
-parameter_widget=widget+0x200
-m.w32(background_widget,0x80222000);m.w32(parameter_widget,0x80222100)
-m.call(word(0x8022209c),background_widget)
-m.call(word(0x80222130),parameter_widget)
+stock_widgets={word(page+offset) for offset in range(0x1a6c,0x1a84,4)}
+assert len(stock_widgets)==6 and 0 not in stock_widgets
+tile_draws=[]
+observe(0x80140291,lambda uc,*_: (tile_draws.append(1),m._ret()))
+m.call(word(0x80225790),word(page+0x1a80))
+assert not tile_draws
 m.key(0x22,True)
 m.key(0x22,False)
 assert m.uc.mem_read(0x80245880,2)==bytes([0x1e,0]), 'EXIT left Sound Generator'
@@ -197,11 +198,13 @@ m.uc.hook_del(stub_invalidate)
 trace_dirty=observe(0x800d0019,lambda uc,*_: (restore_order.append(uc.reg_read(ar.UC_ARM_REG_R0)),m._ret()))
 tick(offset+6000*128)
 assert rects==[(0,0,127,63)], 'leaving Genie did not clear the display once'
-assert restore_order[0]=='clear' and {widget,background_widget,parameter_widget}<=set(restore_order),restore_order
+assert restore_order[0]=='clear' and (stock_widgets|{widget})<=set(restore_order),restore_order
 m.uc.hook_del(trace_fill);m.uc.hook_del(trace_dirty)
 rects.clear()
 m.call(word(0x802256fc),widget)
 assert not rects, 'stock footer erased the display after Genie closed'
+m.call(word(0x80225790),word(page+0x1a80))
+assert tile_draws==[1]
 assert m.pad(0), 'stock Sound Generator input did not resume'
 m.call(word(0x8022bbd4),widget)
 m.call(word(0x80222130),widget)
@@ -277,7 +280,7 @@ assert capture_block(0)[0][:2]==(10000,-10000)
 print('Bounce feed fades both sample edges, leaves other channels and stock captures unchanged')
 
 # Start playback on a render boundary after RX capture starts. The saved
-# window skips one warm-up phrase plus capture lead and effects latency.
+# window skips capture lead and effects latency only.
 with (ROOT/'build/genie.elf').open('rb') as fp:
     capture_clock=ELFFile(fp).get_section_by_name('.symtab').get_symbol_by_name('genie_bounce_clock')[0]['st_value']
 m.w32(capture_state,2)
@@ -285,7 +288,7 @@ m.w32(capture_state+28,0)
 assert m.call(capture_clock)==0
 capture_block(64)
 assert m.call(capture_clock)==1
-window=128+75+1024
+window=128+75
 assert word(capture_state+32)==window
 assert capture_block(window)[0][:2]==(0,0)
 assert m.call(capture_clock)==2
@@ -317,7 +320,7 @@ assert m.call(trim)==1
 assert markers=={0x67:16+window,0x68:1040+window,0x71:16+window} and len(recharged)==2
 markers[0x68]=1000
 assert m.call(trim)==0 and markers[0x68]==1000
-print('Verified the second-pass capture window, exact faded loop range, and rejection of a short take')
+print('Verified the first-pass capture window, exact faded loop range, and rejection of a short take')
 
 if len(sys.argv)>1:
     def render_release(firmware, kind, env=0, blocks_to_render=22):

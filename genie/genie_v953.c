@@ -29,8 +29,6 @@ static struct {
     volatile uint32_t started;
     void *footer;
     void *host_page;
-    void *parameter[2];
-    uintptr_t parameter_type[2];
     uintptr_t footer_type;
     unsigned capturing,painting,exit_down,clean_exit,octaves,length,rotation,lowvel,hivel,gate,view,roll,editing,knobdown,row,bpm,hits,root,scale,held;
     volatile unsigned queued,loop,next,playing,visible;
@@ -166,7 +164,7 @@ __attribute__((section(".roll"),noinline))
 static void restore_sound_generator(void *page){
     if(g.host_page!=page || !SG_PAGE){
         g.host_page=SG_PAGE?page:0;
-        g.footer=0;g.parameter[0]=0;g.parameter[1]=0;g.clean_exit=0;
+        g.footer=0;g.clean_exit=0;
         return;
     }
     if(!g.clean_exit)return;
@@ -179,12 +177,10 @@ static void restore_sound_generator(void *page){
         }
         INVALIDATE(g.footer);
     }
-    void *const *columns=(void *const *)((uint8_t *)page+0x1a6c);
-    for(unsigned i=0;i<3;++i)if(columns[i])INVALIDATE(columns[i]);
-    for(unsigned i=0;i<2;++i){
-        void *widget=g.parameter[i];
-        if(widget && *(uintptr_t *)widget==g.parameter_type[i])INVALIDATE(widget);
-    }
+    /* The live page owns six widgets, including the small bottom-right
+     * status tile at +0x1a80. Repaint it along with the stock parameter bar. */
+    void *const *children=(void *const *)((uint8_t *)page+0x1a6c);
+    for(unsigned i=0;i<6;++i)if(children[i])INVALIDATE(children[i]);
     g.clean_exit=0;
 }
 void genie_poll(void *page) {
@@ -252,7 +248,7 @@ void genie_audio_tick(int frames){
     unsigned step=elapsed*g.bpm/720000u;
     if(step>=g.length){
         release_voice();
-        if(!capture && !(g.loop || g.queued)){stop();return;}
+        if(capture || !(g.loop || g.queued)){stop();return;}
         if(!capture && g.queued){remember();g.seed=g.seed*1664525u+1013904223u;generate();g.queued=0;}
         g.started+=(g.length*720000u+g.bpm/2)/g.bpm;
         elapsed=FRAMES-g.started;
@@ -271,24 +267,20 @@ void genie_audio_tick(int frames){
 __attribute__((section(".roll"))) void genie_column(void *widget){
     if(!g.visible || !SG_PAGE)((page_handler)0x83fe7595u)(widget);
 }
-/* The stock bar uses separate widgets for its background and its text. */
-__attribute__((section(".roll"),used,noinline))
-unsigned genie_track_parameter(void *widget,unsigned part){
-    if(!SG_PAGE)return 0;
-    if(g.host_page){
-        g.parameter[part]=widget;
-        g.parameter_type[part]=*(uintptr_t *)widget;
-    }
-    return g.visible;
+__attribute__((section(".roll"))) void genie_status_tile(void *widget){
+    if(!g.visible || !SG_PAGE)((page_handler)0x80140291u)(widget);
 }
 __attribute__((section(".roll"))) void genie_parameter_background(void *widget){
-    if(!genie_track_parameter(widget,0))((page_handler)0x801239e9u)(widget);
+    if(!g.visible || !SG_PAGE)((page_handler)0x801239e9u)(widget);
 }
 /* Entry detour covers callers that bypass the bar's class draw pointer. */
+__attribute__((used,noinline)) unsigned genie_owns_display(void){
+    return g.visible && SG_PAGE;
+}
 __attribute__((naked,section(".controls"))) void genie_parameter_bar(void *widget){
     __asm__ volatile(
         "push {r0-r3,r4,lr}\n"
-        "movs r1,#1\nbl genie_track_parameter\n"
+        "bl genie_owns_display\n"
         "cmp r0,#0\n"
         "pop {r0-r3,r4,lr}\n"
         "bne 1f\n"
