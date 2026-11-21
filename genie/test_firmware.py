@@ -208,6 +208,9 @@ assert tile_draws==[1]
 assert m.pad(0), 'stock Sound Generator input did not resume'
 m.call(word(0x8022bbd4),widget)
 hint_draws=[]
+hint_colors=[]
+rects.clear()
+observe(0x800d8019,lambda uc,*_:hint_colors.append((uc.reg_read(ar.UC_ARM_REG_R1),uc.reg_read(ar.UC_ARM_REG_R2))))
 observe(0x800d80d9,lambda uc,*_:m._ret())
 def record_hint(uc,*_):
     ptr=uc.reg_read(ar.UC_ARM_REG_R3)
@@ -219,6 +222,7 @@ m.call(word(0x8022209c),widget)
 assert background_draws == [1], 'stock bar background did not resume'
 assert bar_draws == [1], 'stock PRM bar did not resume'
 assert hint_draws==[b'SHIFT: OTHERS'],hint_draws
+assert rects==[(0,43,55,51)] and hint_colors==[(0,0xffffff),(0xffffff,0)]
 assert column_draws == [1], 'stock column did not resume'
 print('Genie closed and stock pad dispatch resumed')
 

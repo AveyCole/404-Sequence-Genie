@@ -280,7 +280,7 @@ void genie_audio_tick(int frames){
     }
 }
 
-__attribute__((section(".roll"))) void genie_column(void *widget){
+__attribute__((section(".clock"))) void genie_column(void *widget){
     if(!g.visible || !SG_PAGE)((page_handler)0x83fe7595u)(widget);
 }
 __attribute__((section(".controls"))) void genie_status_tile(void *widget){
@@ -306,9 +306,12 @@ __attribute__((section(".roll"),used)) void genie_parameter_bar(void *widget){
     if(SG_PAGE && g.return_hint){
         void *fb=*(void **)((uint8_t *)widget+0x84);
         if(fb){
-            COLOR(fb,0xffffff,0);
+            const int badge[]={0,43,55,51};
+            COLOR(fb,0,0xffffff);
+            FILL(fb,badge);
             ((void (*)(void *,unsigned))0x800d80d9u)(fb,0x1d);
             ((void (*)(void *,int,int,const char *))0x800d4fa1u)(fb,28,45,"SHIFT: OTHERS");
+            COLOR(fb,0xffffff,0);
         }
     }
 }
