@@ -25,7 +25,7 @@ static struct {
     uint32_t seed, opened, last, started, consumed;
     void *footer;
     uintptr_t footer_type;
-    unsigned queued,octaves,loop,length,rotation,lowvel,hivel,gate,view,roll, editing, knobdown, row, bpm, hits, root, scale, next, playing, visible, held;
+    unsigned clean_exit,queued,octaves,loop,length,rotation,lowvel,hivel,gate,view,roll, editing, knobdown, row, bpm, hits, root, scale, next, playing, visible, held;
     int note, head, drawn;
 } g;
 typedef struct {
@@ -63,7 +63,9 @@ static void redraw(void) {
     if(g.footer && SG_PAGE && *(uintptr_t *)g.footer==g.footer_type) INVALIDATE(g.footer);
 }
 static void clear_page(void) {
-    stop();g.visible=0;redraw();g.footer=0;
+    stop();g.visible=0;
+    g.clean_exit=g.footer!=0;
+    redraw();g.footer=0;
 }
 __attribute__((section(".controls"))) int genie_press(void *page,int pad,int vel) {
     if(pad==0x13 && SHIFT) {
@@ -71,7 +73,7 @@ __attribute__((section(".controls"))) int genie_press(void *page,int pad,int vel
         if(g.visible) clear_page();
         else {
             if(!g.octaves){g.octaves=1;g.scale=2;g.length=16;g.lowvel=72;g.hivel=112;g.gate=75;g.seed=404;g.bpm=120;g.root=60;g.hits=5;}
-            g.roll=g.editing=0;g.visible=1;g.opened=g.last=FRAMES;g.drawn=-100;g.head=-1;g.note=-1;
+            g.clean_exit=0;g.roll=g.editing=0;g.visible=1;g.opened=g.last=FRAMES;g.drawn=-100;g.head=-1;g.note=-1;
             generate();redraw();
         }
         g.held=1;return 0;
@@ -155,7 +157,14 @@ void genie_poll(void *page) {
     if(genie_bounce_poll(now,!SG_PAGE || !g.visible, !g.playing)) {
         g.playing=1;g.started=now;g.next=0;g.note=-1;
     }
-    if(!g.visible)return;
+    if(!g.visible){
+        if(g.clean_exit==2 && SG_PAGE){
+            void *const *columns=(void *const *)((uint8_t *)page+0x1a6c);
+            for(unsigned i=0;i<3;++i)if(columns[i])INVALIDATE(columns[i]);
+            g.clean_exit=0;
+        }
+        return;
+    }
     if(!SG_PAGE || (((volatile uint8_t *)0x80592448u)[4] & 4u) || now-g.last>24000){clear_page();return;}
     g.last=now;
     dismiss_percentage();
@@ -215,6 +224,15 @@ __attribute__((naked,section(".controls"))) void genie_parameter_bar(void *widge
 }
 void genie_footer(void *widget){
     if(!SG_PAGE || !g.visible){
+        if(SG_PAGE && !g.visible && g.clean_exit==1){
+            void *fb=*(void **)((uint8_t *)widget+0x84);
+            if(fb){
+                const int bounds[]={0,0,127,63};
+                COLOR(fb,0xffffff,0);
+                FILL(fb,bounds);
+                g.clean_exit=2;
+            }
+        }
         OLD_FOOT(widget);
         if(!SG_PAGE)return;
     }

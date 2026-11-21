@@ -148,6 +148,12 @@ pitches=[n for n,v in notes[30:] if v]
 assert len(pitches)==5 and max(pitches)>=72 and all(60<=n<108 for n in pitches),pitches
 print('Verified queue, cancellation, one-shot boundary, octave editing and undo',pitches)
 m.key(KEY_SHIFT,True);m.pad(SUB_PAD);m.pad(SUB_PAD,0);m.key(KEY_SHIFT,False)
+rects.clear()
+m.call(word(0x802256fc),widget)
+assert rects==[(0,0,127,63)], 'leaving Genie did not clear the display once'
+rects.clear()
+m.call(word(0x802256fc),widget)
+assert not rects, 'stock footer kept clearing the display after Genie closed'
 assert m.pad(0), 'stock Sound Generator input did not resume'
 m.call(word(0x8022bbd4),widget)
 m.call(word(0x80222130),widget)
