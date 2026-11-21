@@ -60,7 +60,7 @@ m.call(word(0x8022bbd4),widget)
 m.call(word(0x80222130),widget)
 m.call(0x80123ab1,widget)
 assert not bar_draws, 'stock PRM bar drew over Genie intro'
-assert not column_draws, 'stock column drew over Genie intro' 
+assert not column_draws, 'stock column drew over Genie intro'
 # Only the widget invalidation is stubbed for this synthetic framebuffer.
 observe(0x800d0019,lambda uc,*_:m._ret())
 m.pad(15);m.pad(15,0)
@@ -147,4 +147,3 @@ m.call(word(0x80222130),widget)
 assert bar_draws == [1], 'stock PRM bar did not resume'
 assert column_draws == [1], 'stock column did not resume'
 print('Genie closed and stock pad dispatch resumed')
-

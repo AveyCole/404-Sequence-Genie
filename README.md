@@ -502,4 +502,3 @@ DOOM OS 0.6.1 ED5E base is by Quintus Oostendorp / Klangfeld Labs under the
 MIT License ([LICENSE](LICENSE)), retained unchanged. FX deep edit's parameter
 table comes from DM-404's `core/fx/fxmap.json` by Nicholas Petty and the dm-404
 contributors, under the MIT License ([THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)).
-

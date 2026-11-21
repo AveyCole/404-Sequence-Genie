@@ -18,9 +18,17 @@ form.addEventListener("submit", async event => {
     const response = await fetch(new URL("./genie-patch.json", import.meta.url));
     if (!response.ok) throw new Error("The patch could not be loaded.");
     const patch = await response.json();
-    const parent = new Uint8Array(await file.arrayBuffer());
-    if (await sha256(parent) !== patch.input) {
-      throw new Error("This file is not the supported SP-ETC v9.53 APP1.");
+    let parent = new Uint8Array(await file.arrayBuffer());
+    const inputHash = await sha256(parent);
+    if (inputHash !== patch.input) {
+      const stockHash = window.DOOMOS_RELEASE.firmware.find(entry => entry.version === "5.52").stock_sha256;
+      if (inputHash !== stockHash) {
+        throw new Error("Select stock Roland 5.52 APP1 or the exact SP-ETC v9.53 APP1.");
+      }
+      status.textContent = "Applying SP-ETC v9.53…";
+      const base = window.applyPatch(window.fromBase64(window.DOOMOS_PATCH), parent);
+      parent = window.applyPatch(window.fromBase64(window.DOOMOS_KITS_PATCH), base.bytes).bytes;
+      if (await sha256(parent) !== patch.input) throw new Error("SP-ETC checksum mismatch.");
     }
     const output = new Uint8Array(patch.size);
     output.set(parent);
