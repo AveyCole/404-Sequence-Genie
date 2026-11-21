@@ -38,6 +38,8 @@ def rectangle(uc,*_):
     rects.append(struct.unpack('<4i',uc.mem_read(uc.reg_read(ar.UC_ARM_REG_R1),16)))
     m._ret()
 observe(0x800ce581,rectangle)
+background_draws=[]
+observe(0x801239e9,lambda uc,*_: (background_draws.append(1),m._ret()))
 bar_draws=[]
 def bar_continuation(uc,*_):
     sp=uc.reg_read(ar.UC_ARM_REG_SP)
@@ -59,6 +61,8 @@ intro=rects.copy()
 m.call(word(0x8022bbd4),widget)
 m.call(word(0x80222130),widget)
 m.call(0x80123ab1,widget)
+m.call(word(0x8022209c),widget)
+assert not background_draws, 'stock bar background drew while Genie was open'
 assert not bar_draws, 'stock PRM bar drew over Genie intro'
 assert not column_draws, 'stock column drew over Genie intro'
 # Only the widget invalidation is stubbed for this synthetic framebuffer.
@@ -147,6 +151,8 @@ m.key(KEY_SHIFT,True);m.pad(SUB_PAD);m.pad(SUB_PAD,0);m.key(KEY_SHIFT,False)
 assert m.pad(0), 'stock Sound Generator input did not resume'
 m.call(word(0x8022bbd4),widget)
 m.call(word(0x80222130),widget)
+m.call(word(0x8022209c),widget)
+assert background_draws == [1], 'stock bar background did not resume'
 assert bar_draws == [1], 'stock PRM bar did not resume'
 assert column_draws == [1], 'stock column did not resume'
 print('Genie closed and stock pad dispatch resumed')

@@ -187,6 +187,10 @@ void genie_poll(void *page) {
 __attribute__((section(".controls"))) void genie_column(void *widget){
     if(!g.visible || !SG_PAGE)((page_handler)0x83fe7595u)(widget);
 }
+/* The parameter widget paints its background and content separately. */
+__attribute__((section(".controls"))) void genie_parameter_background(void *widget){
+    if(!g.visible || !SG_PAGE)((page_handler)0x801239e9u)(widget);
+}
 /* Entry detour covers callers that bypass the bar's class draw pointer. */
 __attribute__((used,noinline)) unsigned genie_owns_display(void){
     return g.visible && SG_PAGE;
