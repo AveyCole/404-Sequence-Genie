@@ -17,7 +17,7 @@ typedef void (*page_handler)(void *);
 extern void genie_setup(uint8_t *,unsigned,unsigned,unsigned,unsigned,unsigned,unsigned,unsigned,unsigned,const unsigned *);
 extern void genie_roll(uint8_t *,const sp_sequence *,unsigned,unsigned,int,unsigned);
 extern unsigned genie_bounce_active(void);
-extern void genie_bounce_start(unsigned);
+extern void genie_bounce_start(unsigned,unsigned);
 extern unsigned genie_bounce_poll(unsigned,unsigned,unsigned);
 static struct {
     sp_sequence seq;
@@ -123,7 +123,7 @@ __attribute__((section(".controls"))) int genie_press(void *page,int pad,int vel
         }
         break;
     }
-    case 10:if(!g.playing)genie_bounce_start(FRAMES);break;
+    case 10:if(!g.playing)genie_bounce_start(FRAMES,(g.length*720000u+g.bpm/2)/g.bpm);break;
     case 11:if(g.playing)g.queued^=1;break;
     case 12:stop();undo();break;
     case 13:g.loop^=1;break;

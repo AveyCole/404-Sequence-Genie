@@ -8,8 +8,9 @@
 #define REC U8(0x82e0e755u)
 #define TARGET U32(0x80246e18u)
 #define SLOT __attribute__((section(".capture"),noinline))
-static struct {
+static volatile struct {
     unsigned phase, since, pad, length, snap, ext;
+    unsigned frames, written;
     char message[10];
 } take __attribute__((section(".capture_state")));
 
@@ -35,11 +36,11 @@ static SLOT void saved_notice(unsigned pad){
     if(number>=10){take.message[i++]='1';number-=10;}
     take.message[i++]='0'+number;
     take.message[i]=0;
-    notice(take.message);
+    notice((const char *)take.message);
 }
 SLOT unsigned genie_bounce_active(void){return take.phase;}
 
-SLOT void genie_bounce_start(unsigned now){
+SLOT void genie_bounce_start(unsigned now,unsigned frames){
     if(take.phase)return;
     unsigned looper=U8(0x82e0b81du);
     if(REC || TARGET!=UINT32_MAX || U8(0x82e0d705u) || U32(0x82dfff48u) ||
@@ -51,6 +52,7 @@ SLOT void genie_bounce_start(unsigned now){
     while(pad<160 && (occupied(pad) || CALL3(0x8001aa79u)(0x82e2cd08u,0x79,pad)))++pad;
     if(pad==160){notice("NO EMPTY PAD");return;}
     take.pad=pad;
+    take.frames=frames;take.written=0;
     take.length=CALL3(0x800d94d9u)(0x82e01144u,0x24,0);
     take.snap=CALL3(0x800d94d9u)(0x82e01144u,0x59,0);
     take.ext=CALL3(0x800d94d9u)(0x82e01144u,0x25,0);
@@ -82,6 +84,27 @@ unsigned genie_bounce_poll(unsigned now,unsigned cancel,unsigned finished){
     }
     if(phase==1 && state==1){command(0x17,0);take.phase=2;take.since=now;}
     if(phase==2 && state==2){take.phase=3;return 1;}
-    if(phase==3 && finished){command(0x18,0);take.phase=4;}
+    if(phase==3 && finished && (take.written>=take.frames || age>take.frames+24000)){command(0x18,0);take.phase=4;}
     return 0;
+}
+
+/* Called after upstream RX processing, immediately before recorder ingestion.
+ * Ramp both stereo channels to zero at the capture boundaries. */
+__attribute__((section(".capture_fade"),noinline))
+unsigned genie_bounce_feed(volatile int16_t *packet,unsigned bytes){
+    unsigned phase=take.phase;
+    if(bytes==0x800 && U8(0x82e0e96au)==2 && phase>=2 && phase<=4){
+        unsigned pos=take.written;
+        unsigned total=take.frames;
+        for(unsigned i=0;i<64;++i,++pos){
+            unsigned end=pos<total?total-1-pos:0;
+            unsigned gain=pos<end?pos:end;
+            if(gain<256){
+                packet[16*i]=(int16_t)(((int32_t)packet[16*i]*(int)gain)/256);
+                packet[16*i+1]=(int16_t)(((int32_t)packet[16*i+1]*(int)gain)/256);
+            }
+        }
+        take.written=pos;
+    }
+    return ((unsigned (*)(volatile int16_t *,unsigned))0x1ca81u)(packet,bytes);
 }

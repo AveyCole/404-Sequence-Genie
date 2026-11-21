@@ -156,3 +156,68 @@ assert background_draws == [1], 'stock bar background did not resume'
 assert bar_draws == [1], 'stock PRM bar did not resume'
 assert column_draws == [1], 'stock column did not resume'
 print('Genie closed and stock pad dispatch resumed')
+
+# Compare the actual CTRL event dispatch with exact upstream SP-ETC.
+def shifted_ctrl_writes(firmware):
+    machine=Machine(firmware)
+    writes=[]
+    def setting_write(uc,*_):
+        setting=uc.reg_read(ar.UC_ARM_REG_R1)
+        if 0x7b <= setting <= 0x80:
+            writes.append(setting)
+    machine.uc.hook_add(UC_HOOK_CODE,setting_write,begin=0x800dd0c0,end=0x800dd0c0)
+    page_objects=[]
+    machine.uc.hook_add(UC_HOOK_CODE,lambda uc,*_: page_objects.append(uc.reg_read(ar.UC_ARM_REG_R0)),
+                        begin=int.from_bytes(machine.uc.mem_read(0x802296a4,4),'little')&~1,
+                        end=int.from_bytes(machine.uc.mem_read(0x802296a4,4),'little')&~1)
+    machine.pad(0);machine.pad(0,0)
+    page=page_objects[-1]
+    poll=int.from_bytes(machine.uc.mem_read(0x80229678,4),'little')
+    for _ in range(3):
+        machine.key(KEY_SHIFT,True)
+        machine.call(poll,page)
+        for knob in (1,2,3):
+            writes.append(('CTRL',knob))
+            for value in (12,64,114):
+                machine.dispatch(9,knob,value)
+        machine.key(KEY_SHIFT,False)
+        machine.call(poll,page)
+    return writes
+
+if len(sys.argv)>1:
+    original=shifted_ctrl_writes(Path(sys.argv[1]).read_bytes())
+    actual=shifted_ctrl_writes(image)
+    assert actual==original,(actual,original)
+    print('SHIFT + CTRL routing matches the unmodified v9.53 image:',actual)
+
+# Run the patched upstream feed tail with a known stereo packet.
+with (ROOT/'build/genie.elf').open('rb') as fp:
+    from elftools.elf.elffile import ELFFile
+    capture_state=ELFFile(fp).get_section_by_name('.capture_state')['sh_addr']
+m.w32(capture_state,3)
+m.w32(capture_state+24,1024)
+m.w32(capture_state+28,0)
+m.uc.mem_write(0x82e0e96a,bytes([2]))
+observe(0x1ca81,lambda uc,*_:m._ret())
+# Resolve the target from the installed movw/movt and call it with the stock ABI.
+from capstone import Cs, CS_ARCH_ARM, CS_MODE_THUMB
+instructions=list(Cs(CS_ARCH_ARM,CS_MODE_THUMB).disasm(bytes(m.uc.mem_read(0x83fcbc8a,8)),0x83fcbc8a))
+parts=[int(i.op_str.split('#')[-1],0) for i in instructions]
+feed=parts[0]|parts[1]<<16
+packet=0x3008a000
+raw=struct.pack('<16h',10000,-10000,*(1234,)*14)*64
+def capture_block(frame):
+    m.w32(capture_state+28,frame)
+    m.uc.mem_write(packet,raw)
+    m.call(feed,packet,len(raw))
+    return list(struct.iter_unpack('<16h',bytes(m.uc.mem_read(packet,len(raw)))))
+head=capture_block(0)
+middle=capture_block(512)
+tail=capture_block(960)
+assert head[0][:2]==(0,0) and 0<head[-1][0]<10000
+assert middle[0][:2]==(10000,-10000)
+assert 0<tail[0][0]<10000 and tail[-1][:2]==(0,0)
+assert all(row[2:]==(1234,)*14 for row in head+middle+tail)
+m.w32(capture_state,0)
+assert capture_block(0)[0][:2]==(10000,-10000)
+print('Bounce feed fades both sample edges, leaves other channels and stock captures unchanged')
