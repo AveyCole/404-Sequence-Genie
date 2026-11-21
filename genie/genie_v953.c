@@ -19,7 +19,7 @@ typedef void (*page_handler)(void *);
 extern void genie_setup(uint8_t *,unsigned,unsigned,unsigned,unsigned,unsigned,unsigned,unsigned,unsigned,const unsigned *);
 extern void genie_roll(uint8_t *,const sp_sequence *,unsigned,unsigned,int,unsigned,unsigned);
 extern unsigned genie_bounce_active(void);
-extern void genie_bounce_start(unsigned,unsigned,unsigned);
+extern void genie_bounce_start(unsigned,unsigned,unsigned,unsigned);
 extern void genie_bounce_poll(unsigned,unsigned,unsigned);
 extern unsigned genie_bounce_clock(void);
 static struct {
@@ -30,7 +30,7 @@ static struct {
     void *footer;
     void *host_page;
     uintptr_t footer_type;
-    unsigned capturing,painting,exit_down,clean_exit,octaves,length,rotation,lowvel,hivel,gate,view,roll,editing,knobdown,row,bpm,hits,root,scale,held;
+    unsigned return_hint,capturing,painting,exit_down,clean_exit,octaves,length,rotation,lowvel,hivel,gate,view,roll,editing,knobdown,row,bpm,hits,root,scale,held;
     volatile unsigned queued,loop,next,playing,visible;
     unsigned reverse,skip_edge;
     volatile int head;
@@ -74,6 +74,7 @@ static void redraw(void) {
 static void clear_page(void) {
     stop();g.visible=0;
     g.clean_exit=g.footer!=0;
+    g.return_hint=SG_PAGE;
 }
 __attribute__((section(".controls"))) int genie_press(void *page,int pad,int vel) {
     if(pad==0x13 && SHIFT) {
@@ -136,7 +137,7 @@ __attribute__((section(".controls"))) int genie_press(void *page,int pad,int vel
     case 10:
         if(!g.playing){
             unsigned steps=g.loop==3?2*g.length-2:g.length;
-            genie_bounce_start(FRAMES,(steps*720000u+g.bpm/2)/g.bpm,g.loop);
+            genie_bounce_start(FRAMES,(steps*720000u+g.bpm/2)/g.bpm,g.loop,g.bpm);
         }
         break;
     case 11:if(g.playing)g.queued^=1;break;
@@ -170,7 +171,7 @@ __attribute__((section(".roll"),noinline))
 static void restore_sound_generator(void *page){
     if(g.host_page!=page || !SG_PAGE){
         g.host_page=SG_PAGE?page:0;
-        g.footer=0;g.clean_exit=0;
+        g.footer=0;g.clean_exit=0;g.return_hint=0;
         return;
     }
     if(!g.clean_exit)return;
@@ -282,33 +283,34 @@ void genie_audio_tick(int frames){
 __attribute__((section(".roll"))) void genie_column(void *widget){
     if(!g.visible || !SG_PAGE)((page_handler)0x83fe7595u)(widget);
 }
-__attribute__((section(".roll"))) void genie_status_tile(void *widget){
+__attribute__((section(".controls"))) void genie_status_tile(void *widget){
     if(!g.visible || !SG_PAGE)((page_handler)0x80140291u)(widget);
 }
 __attribute__((section(".roll"))) void genie_parameter_background(void *widget){
     if(!g.visible || !SG_PAGE)((page_handler)0x801239e9u)(widget);
 }
-/* Entry detour covers callers that bypass the bar's class draw pointer. */
-__attribute__((used,noinline)) unsigned genie_owns_display(void){
-    return g.visible && SG_PAGE;
-}
-__attribute__((naked,section(".roll"))) void genie_parameter_bar(void *widget){
+/* Re-enter the stock PRM renderer after its displaced prologue. */
+__attribute__((naked,used)) void genie_bar_stock(void *widget){
     __asm__ volatile(
-        "push {r0-r3,r4,lr}\n"
-        "bl genie_owns_display\n"
-        "cmp r0,#0\n"
-        "pop {r0-r3,r4,lr}\n"
-        "bne 1f\n"
-        ".global genie_bar_stock\n"
-        "genie_bar_stock:\n"
         "push.w {r4-r10,lr}\n"
         "sub sp,#0x78\n"
         "mov r4,r0\n"
         "ldr.w r0,[r0,#0x84]\n"
         "movw ip,#0x3abd\n"
         "movt ip,#0x8012\n"
-        "bx ip\n"
-        "1: bx lr\n");
+        "bx ip\n");
+}
+__attribute__((section(".roll"),used)) void genie_parameter_bar(void *widget){
+    if(SG_PAGE && g.visible)return;
+    genie_bar_stock(widget);
+    if(SG_PAGE && g.return_hint){
+        void *fb=*(void **)((uint8_t *)widget+0x84);
+        if(fb){
+            COLOR(fb,0xffffff,0);
+            ((void (*)(void *,unsigned))0x800d80d9u)(fb,0x1d);
+            ((void (*)(void *,int,int,const char *))0x800d4fa1u)(fb,28,45,"SHIFT: OTHERS");
+        }
+    }
 }
 /* The stock compositor can paint the parameter strip independently of its
  * widget callbacks. Protect the lower-right strip at the rectangle calls. */

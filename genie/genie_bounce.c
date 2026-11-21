@@ -12,7 +12,7 @@ static volatile struct {
     unsigned phase, since, pad, length, snap, ext;
     unsigned frames, written, window;
     char message[10];
-    unsigned mode;
+    unsigned mode,bpm100;
 } take __attribute__((section(".capture_state")));
 
 enum { SEAM_RADIUS=16, SEAM_COUNT=2*SEAM_RADIUS+1 };
@@ -59,7 +59,7 @@ static SLOT void saved_notice(unsigned pad){
 }
 SLOT unsigned genie_bounce_active(void){return take.phase;}
 
-SLOT void genie_bounce_start(unsigned now,unsigned frames,unsigned mode){
+SLOT void genie_bounce_start(unsigned now,unsigned frames,unsigned mode,unsigned bpm){
     if(take.phase)return;
     unsigned looper=U8(0x82e0b81du);
     if(REC || TARGET!=UINT32_MAX || U8(0x82e0d705u) || U32(0x82dfff48u) ||
@@ -72,6 +72,7 @@ SLOT void genie_bounce_start(unsigned now,unsigned frames,unsigned mode){
     if(pad==160){notice("NO EMPTY PAD");return;}
     take.pad=pad;
     take.mode=mode;
+    take.bpm100=bpm*100;
     take.frames=frames;take.written=0;take.window=0;
     take.length=CALL3(0x800d94d9u)(0x82e01144u,0x24,0);
     take.snap=CALL3(0x800d94d9u)(0x82e01144u,0x59,0);
@@ -116,10 +117,11 @@ static unsigned set_loop_range(void){
 /* Direction changes are already rendered as note events. Loop the
  * resulting waveform forward. */
 __attribute__((section(".capture_poll"),noinline))
-static void set_pad_playback(unsigned pad,unsigned mode){
+static void set_pad_playback(unsigned pad,unsigned mode,unsigned bpm100){
     if(mode)CALL4(0x800da721u)(0x82e2cd08u,0x6a,0,pad);
     CALL4(0x800da721u)(0x82e2cd08u,0x6b,mode!=0,pad);
     CALL4(0x800da721u)(0x82e2cd08u,0x75,0,pad);
+    CALL4(0x800da721u)(0x82e2cd08u,0x6f,bpm100,pad);
 }
 
 __attribute__((section(".capture_poll"),noinline))
@@ -134,7 +136,7 @@ void genie_bounce_poll(unsigned now,unsigned cancel,unsigned finished){
             take.phase=0;
             if(phase==4 && occupied(take.pad)){
                 unsigned exact=set_loop_range();
-                set_pad_playback(take.pad,take.mode);
+                set_pad_playback(take.pad,take.mode,take.bpm100);
                 command(0xd,1);
                 if(exact)saved_notice(take.pad);
                 else notice("PAD SAVED: CHECK LOOP");

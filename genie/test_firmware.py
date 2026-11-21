@@ -207,10 +207,18 @@ m.call(word(0x80225790),word(page+0x1a80))
 assert tile_draws==[1]
 assert m.pad(0), 'stock Sound Generator input did not resume'
 m.call(word(0x8022bbd4),widget)
+hint_draws=[]
+observe(0x800d80d9,lambda uc,*_:m._ret())
+def record_hint(uc,*_):
+    ptr=uc.reg_read(ar.UC_ARM_REG_R3)
+    hint_draws.append(bytes(uc.mem_read(ptr,14)).split(bytes(1))[0])
+    m._ret()
+observe(0x800d4fa1,record_hint)
 m.call(word(0x80222130),widget)
 m.call(word(0x8022209c),widget)
 assert background_draws == [1], 'stock bar background did not resume'
 assert bar_draws == [1], 'stock PRM bar did not resume'
+assert hint_draws==[b'SHIFT: OTHERS'],hint_draws
 assert column_draws == [1], 'stock column did not resume'
 print('Genie closed and stock pad dispatch resumed')
 
@@ -391,10 +399,11 @@ for address,result in ((0x8001aa78,0),(0x800d9e30,1)):
                          begin=address,end=address)
 for mode,expected in enumerate(((1,0,0),(0,1,0),(0,1,0),(0,1,0))):
     pad_test.call(0x800da721,0x82e2cd08,0x6a,1,0)
-    pad_test.call(pad_playback,0,mode)
+    pad_test.call(pad_playback,0,mode,13700)
     actual=tuple(pad_test.call(0x800dc6b9,0x82e2cd08,field,0) for field in (0x6a,0x6b,0x75))
     assert actual==expected,(mode,actual,expected)
-print('Verified stock pad GATE, LOOP and PLAY flags for all four bounce modes')
+    assert pad_test.call(0x800dc6b9,0x82e2cd08,0x6f,0)==13700
+print('Verified stock pad GATE, LOOP, PLAY and Original BPM for all four bounce modes')
 
 if len(sys.argv)>1:
     def render_release(firmware, kind, env=0, blocks_to_render=22):
