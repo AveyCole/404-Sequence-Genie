@@ -264,3 +264,30 @@ assert all(row[2:]==(1234,)*14 for row in head+middle+tail)
 m.w32(capture_state,0)
 assert capture_block(0)[0][:2]==(10000,-10000)
 print('Bounce feed fades both sample edges, leaves other channels and stock captures unchanged')
+
+# Stock finalization can move START and leave extra recorder frames at END.
+# Exercise the exact range rewrite with a stereo file whose data begins at frame 16.
+with (ROOT/'build/genie.elf').open('rb') as fp:
+    trim=ELFFile(fp).get_section_by_name('.symtab').get_symbol_by_name('set_loop_range')[0]['st_value']
+m.w32(capture_state+28,1024)
+m.w32(0x82e0e970,0x3008c000)
+m.w32(0x3008c1c0,108)
+m.w32(0x82e495e4+8,2)
+m.w32(0x82e495e4+12,44)
+markers={0x67:32,0x68:1120,0x71:32}
+recharged=[]
+def read_marker(uc,*_):
+    m._ret(markers[uc.reg_read(ar.UC_ARM_REG_R1)])
+def write_marker(uc,*_):
+    markers[uc.reg_read(ar.UC_ARM_REG_R1)]=uc.reg_read(ar.UC_ARM_REG_R2)
+    m._ret()
+observe(0x800dc6b9,read_marker)
+observe(0x800da721,write_marker)
+observe(0x800dda39,lambda uc,*_: (uc.reg_write(ar.UC_ARM_REG_R0,0),m._ret()))
+for address in (0x800d6391,0x800d7509):
+    observe(address,lambda uc,*_: (recharged.append(1),m._ret()))
+assert m.call(trim)==1
+assert markers=={0x67:16,0x68:1040,0x71:16} and len(recharged)==2
+markers[0x68]=1000
+assert m.call(trim)==0 and markers[0x68]==1000
+print('Verified the exact faded loop range and rejection of a short take')

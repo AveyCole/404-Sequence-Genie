@@ -28,7 +28,7 @@ def build(input_path, dest, zig):
     ld = tmp / 'genie.ld'
     ld.write_text("""ENTRY(genie_press)
 SECTIONS {
- .clock 0x83fe1c84 : { KEEP(*(.clock)) }
+ .clock 0x83fe1c84 : { KEEP(*(.clock)) *(.capture_range) }
  .voice 0x83fece70 : { *(.voice) }
  .clock_state 0x83fdb420 : { *(.clock_state) }
  .capture_fade 0x83fe7eb0 : { KEEP(*(.capture_fade)) }

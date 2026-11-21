@@ -64,6 +64,34 @@ SLOT void genie_bounce_start(unsigned now,unsigned frames){
     take.since=now;take.phase=1;
 }
 
+/* Stock finalization may trim the onset and retain recorder stop latency.
+ * Restore the physical first captured frame and use the same frame count
+ * that the RX fade used, so pad playback wraps at the faded boundary. */
+__attribute__((section(".capture_range"),noinline))
+static unsigned set_loop_range(void){
+    unsigned pad=take.pad;
+    unsigned info=0x82e495e4u+36*pad;
+    unsigned engine=U32(0x82e0e970u);
+    if(!engine || U32(info+8)!=2 || take.written<take.frames)return 0;
+    unsigned offset=U32(info+12),data=U32(engine+0x1c0);
+    if(data<offset || ((data-offset)&3))return 0;
+    unsigned start=(data-offset)/4;
+    unsigned end=start+take.frames;
+    int saved_end=(int)CALL3(0x800dc6b9u)(0x82e2cd08u,0x68,pad);
+    if(end<start || saved_end<0 || (unsigned)saved_end<end)return 0;
+    unsigned zero_cross=CALL3(0x800dda39u)(0x82e009d0u,0xfb,UINT32_MAX);
+    if(zero_cross)CALL4(0x800ded19u)(0x82e009d0u,0xfb,0,UINT32_MAX);
+    CALL4(0x800da721u)(0x82e2cd08u,0x67,start,pad);
+    CALL4(0x800da721u)(0x82e2cd08u,0x68,end,pad);
+    CALL4(0x800da721u)(0x82e2cd08u,0x71,start,pad);
+    if(zero_cross)CALL4(0x800ded19u)(0x82e009d0u,0xfb,zero_cross,UINT32_MAX);
+    ((void (*)(unsigned))0x800d6391u)(pad);
+    ((void (*)(unsigned))0x800d7509u)(0x80591800u);
+    return CALL3(0x800dc6b9u)(0x82e2cd08u,0x67,pad)==start &&
+           CALL3(0x800dc6b9u)(0x82e2cd08u,0x68,pad)==end &&
+           CALL3(0x800dc6b9u)(0x82e2cd08u,0x71,pad)==start;
+}
+
 __attribute__((section(".capture_poll"),noinline))
 unsigned genie_bounce_poll(unsigned now,unsigned cancel,unsigned finished){
     unsigned phase=take.phase;
@@ -72,10 +100,16 @@ unsigned genie_bounce_poll(unsigned now,unsigned cancel,unsigned finished){
     unsigned age=now-take.since;
     if(phase==4 || phase==5){
         if(!state && TARGET==UINT32_MAX){
-            setting(0x24,take.length);setting(0x59,take.snap);setting(0x25,take.ext);
+            setting(0x24,take.length);setting(0x25,take.ext);
             take.phase=0;
-            if(phase==4 && occupied(take.pad)){command(0xd,1);saved_notice(take.pad);}
+            if(phase==4 && occupied(take.pad)){
+                unsigned exact=set_loop_range();
+                command(0xd,1);
+                if(exact)saved_notice(take.pad);
+                else notice("PAD SAVED: CHECK LOOP");
+            }
             else notice("GENIE BOUNCE ENDED");
+            setting(0x59,take.snap);
         }
         return 0;
     }
