@@ -87,9 +87,18 @@ static unsigned set_loop_range(void){
     if(zero_cross)CALL4(0x800ded19u)(0x82e009d0u,0xfb,zero_cross,UINT32_MAX);
     ((void (*)(unsigned))0x800d6391u)(pad);
     ((void (*)(unsigned))0x800d7509u)(0x80591800u);
-    return CALL3(0x800dc6b9u)(0x82e2cd08u,0x67,pad)==start &&
-           CALL3(0x800dc6b9u)(0x82e2cd08u,0x68,pad)==end &&
-           CALL3(0x800dc6b9u)(0x82e2cd08u,0x71,pad)==start;
+    if(CALL3(0x800dc6b9u)(0x82e2cd08u,0x67,pad)!=start ||
+       CALL3(0x800dc6b9u)(0x82e2cd08u,0x68,pad)!=end ||
+       CALL3(0x800dc6b9u)(0x82e2cd08u,0x71,pad)!=start)return 0;
+    /* SP-ETC's FINE + FIRST pad envelope applies this attack once
+     * per pad trigger. The sample itself keeps its short seam fades. */
+    volatile uint8_t *envelope=(volatile uint8_t *)(0x82e3c508u+pad*0x80u);
+    envelope[0x65]=16;                 /* about 1.6 ms */
+    envelope[0x66]=0;
+    envelope[0x64]=5;
+    envelope[0x6d]=1;
+    U8(0x82e2cd24u)=1;
+    return 1;
 }
 
 __attribute__((section(".capture_poll"),noinline))
@@ -146,11 +155,8 @@ unsigned genie_bounce_feed(volatile int16_t *packet,unsigned bytes){
                 unsigned frame=pos+i;
                 if(frame<start || frame>=end)continue;
                 unsigned head=frame-start,tail=end-1-frame;
-                /* Ease in over 256 frames to soften pad starts. Keep
-                 * the existing short fade at the far side of the seam. */
-                unsigned gain=256;
-                if(head<256)gain=(head*head*(768-2*head))>>16;
-                if(tail<64 && tail*4<gain)gain=tail*4;
+                unsigned distance=head<tail?head:tail;
+                unsigned gain=distance<64?distance*4:256;
                 if(gain<256){
                     packet[16*i]=(int16_t)(((int32_t)packet[16*i]*(int)gain)/256);
                     packet[16*i+1]=(int16_t)(((int32_t)packet[16*i+1]*(int)gain)/256);

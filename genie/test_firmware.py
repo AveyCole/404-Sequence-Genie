@@ -292,9 +292,8 @@ window=128+75
 assert word(capture_state+32)==window
 window_head=capture_block(window)
 assert window_head[0][:2]==(0,0)
-assert 0<window_head[-1][0]<1700
-assert capture_block(window+128)[0][:2]==(5000,-5000)
-assert capture_block(window+256)[0][:2]==(10000,-10000)
+assert window_head[-1][:2]==(9843,-9843)
+assert capture_block(window+64)[0][:2]==(10000,-10000)
 assert m.call(capture_clock)==2
 assert capture_block(window+1024-64)[-1][:2]==(0,0)
 assert m.call(capture_clock)==3
@@ -322,6 +321,8 @@ for address in (0x800d6391,0x800d7509):
     observe(address,lambda uc,*_: (recharged.append(1),m._ret()))
 assert m.call(trim)==1
 assert markers=={0x67:16+window,0x68:1040+window,0x71:16+window} and len(recharged)==2
+env=m.uc.mem_read(0x82e3c508+0x64,10)
+assert env[0:3]==bytes([5,16,0]) and env[9]==1
 markers[0x68]=1000
 assert m.call(trim)==0 and markers[0x68]==1000
 print('Verified the first-pass capture window, exact faded loop range, and rejection of a short take')
