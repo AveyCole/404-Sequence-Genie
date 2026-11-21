@@ -352,6 +352,36 @@ markers[0x68]=1000
 assert m.call(trim)==0 and markers[0x68]==1000
 print('Verified the first-pass capture window, paired near-zero loop markers, and rejection of a short take')
 
+# Pad 11 uses a single ping-pong cycle: 128 forward steps followed by
+# 126 backward steps. Mock only recorder commands and states.
+for address in (0x8001aa79,0x800da011,0x800d94d9,0x800dd0c1,0x800d48e9,0x800e25c1):
+    observe(address,lambda uc,*_:m._ret(0))
+for address in (0x82e0e755,0x82e0d705,0x82e0b81d,0x82e0b81e):
+    m.uc.mem_write(address,bytes(1))
+m.w32(0x82dfff48,0)
+m.w32(0x80246e18,0xffffffff)
+m.w32(0x80246e20,1)
+m.w32(capture_state,0)
+bounce_start=mode_start+6000*270
+m.w32(0x8059226c,bounce_start//2)
+m.key(KEY_SHIFT,True);tap(SUB_PAD);m.key(KEY_SHIFT,False)
+bounce_start+=60000
+m.w32(0x8059226c,bounce_start//2)
+tap(14)
+tap(10)
+assert word(capture_state)==1 and word(capture_state+24)==254*6000
+m.w32(capture_state,2)
+m.w32(capture_state+28,64)
+m.uc.mem_write(0x82e0e96a,bytes([2]))
+for step,x in ((0,12),(127,117),(128,110),(253,19)):
+    m.w32(0x8059226c,(bounce_start+6000*step)//2)
+    audio_tick()
+    assert (x,7,x+5,7) in picture(),(step,x)
+m.w32(0x8059226c,(bounce_start+6000*254)//2)
+audio_tick()
+assert all(y!=7 for _,y,_,_ in picture()[1:]),'bounce started a second cycle'
+print('Pad 11 captures a complete ping-pong note cycle at the original tempo')
+
 # Exercise mode inheritance through the real stock pad setter and getter.
 with (ROOT/'build/genie.elf').open('rb') as fp:
     pad_playback=ELFFile(fp).get_section_by_name('.symtab').get_symbol_by_name('set_pad_playback')[0]['st_value']
@@ -359,12 +389,12 @@ pad_test=Machine(image)
 for address,result in ((0x8001aa78,0),(0x800d9e30,1)):
     pad_test.uc.hook_add(UC_HOOK_CODE,lambda uc,*_,result=result:pad_test._ret(result),
                          begin=address,end=address)
-for mode,expected in enumerate(((1,0,0),(0,1,0),(0,1,0),(0,1,2))):
+for mode,expected in enumerate(((1,0,0),(0,1,0),(0,1,0),(0,1,0))):
     pad_test.call(0x800da721,0x82e2cd08,0x6a,1,0)
     pad_test.call(pad_playback,0,mode)
     actual=tuple(pad_test.call(0x800dc6b9,0x82e2cd08,field,0) for field in (0x6a,0x6b,0x75))
     assert actual==expected,(mode,actual,expected)
-print('Verified stock pad GATE, LOOP and ping-pong flags for all four bounce modes')
+print('Verified stock pad GATE, LOOP and PLAY flags for all four bounce modes')
 
 if len(sys.argv)>1:
     def render_release(firmware, kind, env=0, blocks_to_render=22):

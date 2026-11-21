@@ -113,13 +113,13 @@ static unsigned set_loop_range(void){
     return 1;
 }
 
-/* Stock pad PLAY is a bitfield: bit 0 reverses the waveform, bit 1
- * ping-pongs it. REV is already rendered in reverse note order. */
+/* Direction changes are already rendered as note events. Loop the
+ * resulting waveform forward. */
 __attribute__((section(".capture_poll"),noinline))
 static void set_pad_playback(unsigned pad,unsigned mode){
     if(mode)CALL4(0x800da721u)(0x82e2cd08u,0x6a,0,pad);
     CALL4(0x800da721u)(0x82e2cd08u,0x6b,mode!=0,pad);
-    CALL4(0x800da721u)(0x82e2cd08u,0x75,mode==3?2:0,pad);
+    CALL4(0x800da721u)(0x82e2cd08u,0x75,0,pad);
 }
 
 __attribute__((section(".capture_poll"),noinline))

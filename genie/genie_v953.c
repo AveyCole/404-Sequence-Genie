@@ -133,7 +133,12 @@ __attribute__((section(".controls"))) int genie_press(void *page,int pad,int vel
         }
         break;
     }
-    case 10:if(!g.playing)genie_bounce_start(FRAMES,(g.length*720000u+g.bpm/2)/g.bpm,g.loop);break;
+    case 10:
+        if(!g.playing){
+            unsigned steps=g.loop==3?2*g.length-2:g.length;
+            genie_bounce_start(FRAMES,(steps*720000u+g.bpm/2)/g.bpm,g.loop);
+        }
+        break;
     case 11:if(g.playing)g.queued^=1;break;
     case 12:stop();undo();break;
     case 13:g.loop=(g.loop+1)&3;break;
@@ -247,7 +252,8 @@ void genie_audio_tick(int frames){
     if(!g.playing){release_voice();return;}
     uint32_t elapsed=FRAMES-g.started;
     unsigned step=elapsed*g.bpm/720000u;
-    unsigned span=g.length-g.skip_edge;
+    unsigned capture_ping=capture && g.loop==3;
+    unsigned span=capture_ping?2*g.length-2:g.length-g.skip_edge;
     if(step>=span){
         release_voice();
         if(capture || !(g.loop || g.queued)){stop();return;}
@@ -262,7 +268,9 @@ void genie_audio_tick(int frames){
         g.next=0;g.head=-1;
     }
     unsigned phase=elapsed*g.bpm-step*720000u;
-    unsigned index=g.reverse?span-1-step:step+g.skip_edge;
+    unsigned index;
+    if(capture_ping)index=step<g.length?step:span-step;
+    else index=g.reverse?span-1-step:step+g.skip_edge;
     if(index!=(unsigned)g.head || phase>=7200u*g.gate)release_voice();
     if(step<span && step>=g.next){
         g.head=(int)index;g.next=step+1;
