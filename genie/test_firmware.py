@@ -15,13 +15,21 @@ for src, dest, size, kind in scatter(image):
 m=Machine(image);print('constructors and Sound Generator page OK',flush=True)
 def word(a):return int.from_bytes(m.uc.mem_read(a,4),'little')
 def observe(fn,cb):return m.uc.hook_add(UC_HOOK_CODE,cb,begin=fn&~1,end=fn&~1)
-pages=[];notes=[]
+pages=[];notes=[];note_frames=[]
 observe(word(0x802296a4),lambda uc,*_:pages.append(uc.reg_read(ar.UC_ARM_REG_R0)))
 def voice(uc,*_):
-    notes.append((uc.reg_read(ar.UC_ARM_REG_R1),uc.reg_read(ar.UC_ARM_REG_R2)))
+    ptr=uc.reg_read(ar.UC_ARM_REG_R0)
+    on=uc.reg_read(ar.UC_ARM_REG_R1)
+    note=(word(ptr+0x5c)+48)&0xffffffff
+    notes.append((note,word(ptr+0x74)//100 if on else 0))
+    if on:note_frames.append(word(0x8059226c)*2)
+    uc.mem_write(ptr,bytes([int(bool(on)),0]))
     m._ret()
-observe(0x83fa3449,voice)
-# Record which objects receive the real widget invalidator during entry.
+observe(0x800d0669,voice)
+observe(0x80132341,lambda uc,*_:m._ret())
+observe(0x83fa2241,lambda uc,*_:m._ret())
+def audio_tick():
+    m.call(0x83fa21b1,0,0,64,0)
 invalidations=[]
 invalidator=observe(0x800d0019,lambda uc,*_:invalidations.append(uc.reg_read(ar.UC_ARM_REG_R0)))
 m.key(KEY_SHIFT,True);m.pad(SUB_PAD);m.pad(SUB_PAD,0);m.key(KEY_SHIFT,False)
@@ -81,7 +89,7 @@ for msg, count in [(b'50%',1),(b'CPU 50%',1),(b'50% WARNING',1),(b'105%',1)]:
     assert len(closed)==count,(msg,closed)
 m.w32(0x805922b0,0)
 for frame in range(0,97000,768):
-    m.w32(0x8059226c,frame//2);m.call(word(0x80229678),page)
+    m.w32(0x8059226c,frame//2);audio_tick();m.call(word(0x80229678),page)
 rects.clear();m.call(word(0x802256fc),widget)
 assert len(rects)>40 and rects!=intro
 # Selection and edits must change what the physical framebuffer receives.
@@ -111,19 +119,22 @@ m.pad(15);m.pad(15,0)
 for step in range(128):
     for phase in (0,1800,4500):
         frame=start+6000*step+phase
-        m.w32(0x8059226c,frame//2);m.call(word(0x80229678),page)
+        m.w32(0x8059226c,frame//2);audio_tick()
         if step==3 and phase==0:m.pad(14);m.pad(14,0)
         if step==127 and phase==0:
             roll_pixels=picture()
             assert (117,7,122,7) in roll_pixels,'playhead did not reach step 128'
             assert all(y1<52 for _,_,_,y1 in roll_pixels[1:]), 'roll overlaps stock strip'
 assert len(notes)==20,'changing view interrupted or restarted the eight-bar phrase'
+assert all((frame-start)%6000==0 for frame in note_frames[5:]),note_frames
+print('Eight-bar playback stayed on the audio grid without running the UI poll')
 m.pad(14);m.pad(14,0)
 # Queue from the final bar, with looping off. Playback continues for exactly one phrase.
 def tap(index):
     m.pad(index);m.pad(index,0)
 def tick(frame):
-    m.w32(0x8059226c,frame//2);m.call(word(0x80229678),page)
+    m.w32(0x8059226c,frame//2);audio_tick();m.call(word(0x80229678),page)
+tick(start+6000*127+4500)
 unarmed=picture()
 tap(11);assert picture()!=unarmed
 tap(11);assert picture()==unarmed

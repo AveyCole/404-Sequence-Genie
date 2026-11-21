@@ -10,7 +10,9 @@ typedef void (*page_handler)(void *);
 #define OLD_FOOT ((page_handler)0x83fe7669u)
 #define FRAMES (*(volatile uint32_t *)0x8059226cu * 2u)
 #define SHIFT (((volatile uint8_t *)0x80592448u)[5] & 4u)
-#define SYNTH ((void (*)(unsigned,int,int,int))0x83fa3449u)
+#define VOICE_START ((void (*)(volatile uint8_t *,int))0x800d0669u)
+#define VOICE_RESET ((void (*)(volatile uint8_t *))0x80132341u)
+#define ORIGINAL_ARP_TICK ((void (*)(int))0x83fa2241u)
 #define INVALIDATE ((page_handler)0x800d0019u)
 #define COLOR ((void (*)(void *,unsigned,unsigned))0x800d8019u)
 #define FILL ((void (*)(void *,const int *))0x800ce581u)
@@ -22,11 +24,14 @@ extern unsigned genie_bounce_poll(unsigned,unsigned,unsigned);
 static struct {
     sp_sequence seq;
     uint8_t pixels[1024];
-    uint32_t seed, opened, last, started, consumed;
+    uint32_t seed, opened, consumed;
+    volatile uint32_t started;
     void *footer;
     uintptr_t footer_type;
-    unsigned exit_down,clean_exit,queued,octaves,loop,length,rotation,lowvel,hivel,gate,view,roll, editing, knobdown, row, bpm, hits, root, scale, next, playing, visible, held;
-    int note, head, drawn;
+    unsigned exit_down,clean_exit,octaves,length,rotation,lowvel,hivel,gate,view,roll,editing,knobdown,row,bpm,hits,root,scale,held;
+    volatile unsigned queued,loop,next,playing,visible;
+    volatile int head;
+    int drawn;
 } g;
 typedef struct {
     sp_sequence seq;
@@ -53,8 +58,9 @@ static const uint16_t scales[]={
 };
 enum { SCALE_COUNT = sizeof scales / sizeof scales[0] };
 static void stop(void) {
-    if(g.playing && g.note>=0) SYNTH(2,g.note,0,1);
-    if(g.head>=0)g.view=(unsigned)g.head/16;g.queued=0;g.note=-1;g.playing=0;g.head=-1;
+    g.playing=0;
+    if(g.head>=0)g.view=(unsigned)g.head/16;
+    g.queued=0;g.head=-1;
 }
 static void generate(void) {
     sp_seq_generate(&g.seq,0,g.length,g.hits,g.rotation,g.root,g.octaves,scales[g.scale],g.lowvel,g.hivel,g.seed);
@@ -73,7 +79,7 @@ __attribute__((section(".controls"))) int genie_press(void *page,int pad,int vel
         if(g.visible) clear_page();
         else {
             if(!g.octaves){g.octaves=1;g.scale=2;g.length=16;g.lowvel=72;g.hivel=112;g.gate=75;g.seed=404;g.bpm=120;g.root=60;g.hits=5;}
-            g.clean_exit=0;g.roll=g.editing=0;g.visible=1;g.opened=g.last=FRAMES;g.drawn=-100;g.head=-1;g.note=-1;
+            g.clean_exit=0;g.roll=g.editing=0;g.visible=1;g.opened=FRAMES;g.drawn=-100;g.head=-1;
             generate();redraw();
         }
         g.held=1;return 0;
@@ -132,7 +138,7 @@ __attribute__((section(".controls"))) int genie_press(void *page,int pad,int vel
     case 14:g.roll^=1;g.editing=0;break;
     case 15:
         if(g.playing)stop();
-        else {g.playing=1;g.started=FRAMES;g.next=0;g.note=-1;}
+        else {g.started=FRAMES;g.next=0;__asm__ volatile("dmb" ::: "memory");g.playing=1;}
         break;
     }
     g.drawn=-100;redraw();return 0;
@@ -155,7 +161,7 @@ void genie_poll(void *page) {
     OLD_POLL(page);
     uint32_t now=FRAMES;
     if(genie_bounce_poll(now,!SG_PAGE || !g.visible, !g.playing)) {
-        g.playing=1;g.started=now;g.next=0;g.note=-1;
+        g.started=now;g.next=0;__asm__ volatile("dmb" ::: "memory");g.playing=1;
     }
     if(!g.visible){
         if(g.clean_exit==2 && SG_PAGE){
@@ -165,39 +171,80 @@ void genie_poll(void *page) {
         }
         return;
     }
-    if(!SG_PAGE || now-g.last>24000){clear_page();return;}
-    g.last=now;
+    if(!SG_PAGE){clear_page();return;}
     dismiss_percentage();
-    if(g.playing){
-        uint32_t elapsed=now-g.started;
-        unsigned step=elapsed*g.bpm/720000u;
-        if(step>=g.length && (g.loop || g.queued) && !genie_bounce_active()){
-            if(g.note>=0){SYNTH(2,g.note,0,1);g.note=-1;}
-            if(g.queued){remember();g.seed=g.seed*1664525u+1013904223u;generate();g.queued=0;g.drawn=-100;}
-            g.started+=(g.length*720000u+g.bpm/2)/g.bpm;
-            elapsed=now-g.started;step=elapsed*g.bpm/720000u;g.next=0;g.head=-1;
-        }
-        if(step>=g.length)stop();
-        else {
-            unsigned phase=elapsed*g.bpm-step*720000u;
-            if(g.note>=0 && (step!= (unsigned)g.head || phase>=7200u*g.gate)){
-                SYNTH(2,g.note,0,1);g.note=-1;
-            }
-            if(step>=g.next){
-                g.head=(int)step;g.next=step+1;
-                sp_seq_step e=g.seq.step[step];
-                if(e.hit && phase<7200u*g.gate){g.note=e.note;SYNTH(2,e.note,e.velocity,0);}
-            }
-        }
-    }
     int frame=now-g.opened<48000?20:(g.roll?g.head:(int)g.playing);
     if(g.drawn!=frame){g.drawn=frame;redraw();}
 }
+/* Run on the stock arpeggiator's 64-frame render boundary. The voice start
+ * follows the arpeggiator's idle-voice path and never waits on a busy voice. */
+static unsigned active_voice __attribute__((section(".clock_state")));
+#define VOICE_WORD(v,offset) (*(volatile uint32_t *)((v)+(offset)))
+static volatile uint8_t *voice_at(unsigned slot){
+    return (volatile uint8_t *)(slot ? 0x8353a310u+(slot-1)*0x1b0 : 0x80249800u);
+}
+__attribute__((section(".voice"),noinline))
+static void release_voice(void){
+    if(!active_voice)return;
+    volatile uint8_t *v=voice_at(active_voice-1);
+    if(v[0] && !v[1] && v[0x194]==0xff && VOICE_WORD(v,0x1ac)==UINT32_MAX)
+        VOICE_START(v,0);
+    active_voice=0;
+}
+__attribute__((section(".voice"),noinline))
+static void start_voice(unsigned note,unsigned velocity){
+    if(note>108)note-=24;
+    else if(note>96)note-=12;
+    for(unsigned slot=0;slot<4;++slot){
+        volatile uint8_t *v=voice_at(slot);
+        if(v[0] || ((volatile uint8_t *)0x83fa0800u)[slot])continue;
+        if(slot){
+            volatile uint8_t *src=voice_at(0);
+            for(unsigned i=4;i<0x1b0;i+=4)VOICE_WORD(v,i)=VOICE_WORD(src,i);
+            VOICE_WORD(v,0)=VOICE_WORD(src,0)&0xffff0000u;
+        }
+        v[0x70]=v[0x71];
+        VOICE_RESET(v);
+        VOICE_WORD(v,0x5c)=note-48;
+        VOICE_WORD(v,0x74)=VOICE_WORD(v,0x198)=velocity*100;
+        VOICE_WORD(v,0x19c)=note-48;
+        VOICE_WORD(v,0x1a0)=1000;
+        VOICE_WORD(v,0x1ac)=UINT32_MAX;
+        v[0x194]=0xff;
+        VOICE_START(v,1);
+        active_voice=slot+1;
+        return;
+    }
+}
+__attribute__((section(".clock"),used))
+void genie_audio_tick(int frames){
+    ORIGINAL_ARP_TICK(frames);
+    if(!g.playing || !g.visible || !SG_PAGE){release_voice();return;}
+    uint32_t elapsed=FRAMES-g.started;
+    unsigned step=elapsed*g.bpm/720000u;
+    if(step>=g.length){
+        release_voice();
+        if(genie_bounce_active() || !(g.loop || g.queued)){stop();return;}
+        if(g.queued){remember();g.seed=g.seed*1664525u+1013904223u;generate();g.queued=0;}
+        g.started+=(g.length*720000u+g.bpm/2)/g.bpm;
+        elapsed=FRAMES-g.started;
+        step=elapsed*g.bpm/720000u;
+        g.next=0;g.head=-1;
+    }
+    unsigned phase=elapsed*g.bpm-step*720000u;
+    if(step!=(unsigned)g.head || phase>=7200u*g.gate)release_voice();
+    if(step<g.length && step>=g.next){
+        g.head=(int)step;g.next=step+1;
+        sp_seq_step ev=g.seq.step[step];
+        if(ev.hit && phase<7200u*g.gate)start_voice(ev.note,ev.velocity);
+    }
+}
+
 __attribute__((section(".controls"))) void genie_column(void *widget){
     if(!g.visible || !SG_PAGE)((page_handler)0x83fe7595u)(widget);
 }
 /* The parameter widget paints its background and content separately. */
-__attribute__((section(".controls"))) void genie_parameter_background(void *widget){
+__attribute__((section(".roll"))) void genie_parameter_background(void *widget){
     if(!g.visible || !SG_PAGE)((page_handler)0x801239e9u)(widget);
 }
 /* Entry detour covers callers that bypass the bar's class draw pointer. */
