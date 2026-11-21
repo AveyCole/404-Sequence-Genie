@@ -91,6 +91,17 @@ SECTIONS {
         offset = file_offset(parent,address,len(patch))
         img[offset:offset+len(patch)] = patch
         blocks.append((address,patch))
+        for address, name in ((0x800ce510,'genie_rect_outline'),
+                              (0x800ce548,'genie_rect_pattern'),
+                              (0x800ce580,'genie_rect_fill')):
+            original = bytes.fromhex('b0b584b004466d46c8680390')
+            if rt.read(address,len(original)) != original:
+                raise ValueError(f'Unexpected rectangle prologue at {address:#x}')
+            target = obj.get_section_by_name('.symtab').get_symbol_by_name(name)[0]['st_value']
+            patch = assemble(jump(target)+'nop',address)
+            offset = file_offset(parent,address,len(patch))
+            img[offset:offset+len(patch)] = patch
+            blocks.append((address,patch))
         clock_site = 0x83fa21c6
         if rt.read(clock_site,10) != bytes.fromhex('42f2412cc8f2fa3ce047'):
             raise ValueError('Unexpected Sound Generator render hook')

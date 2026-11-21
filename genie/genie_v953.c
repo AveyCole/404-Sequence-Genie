@@ -28,7 +28,7 @@ static struct {
     volatile uint32_t started;
     void *footer;
     uintptr_t footer_type;
-    unsigned exit_down,clean_exit,octaves,length,rotation,lowvel,hivel,gate,view,roll,editing,knobdown,row,bpm,hits,root,scale,held;
+    unsigned painting,exit_down,clean_exit,octaves,length,rotation,lowvel,hivel,gate,view,roll,editing,knobdown,row,bpm,hits,root,scale,held;
     volatile unsigned queued,loop,next,playing,visible;
     volatile int head;
     int drawn;
@@ -269,6 +269,31 @@ __attribute__((naked,section(".controls"))) void genie_parameter_bar(void *widge
         "bx ip\n"
         "1: bx lr\n");
 }
+/* The stock compositor can paint the parameter strip independently of its
+ * widget callbacks. Protect the lower-right strip at the rectangle calls. */
+__attribute__((used,noinline,section(".roll")))
+unsigned genie_strip_guard(void *context,const int *box){
+    if(!g.visible || !SG_PAGE || g.painting || !g.footer || !context)return 0;
+    const uint8_t *ours=*(const uint8_t **)((uint8_t *)g.footer+0x84);
+    if(!ours || *(const void *const *)ours!=*(const void *const *)context)return 0;
+    const int *origin=(const int *)((const uint8_t *)context+0x14);
+    int left=box[0]+origin[0],top=box[1]+origin[1];
+    int right=box[2]+origin[0],bottom=box[3]+origin[1];
+    return left>=48 && right>=left && right<128 && top>=45 && bottom>=top && bottom<64;
+}
+#define STRIP_WRAPPER(name, resume) \
+__attribute__((naked,used,section(".roll"))) void name(void){ \
+    __asm__ volatile( \
+        "push {r0-r3,r4,lr}\nbl genie_strip_guard\ncmp r0,#0\n" \
+        "pop {r0-r3,r4,lr}\nbne 1f\n" \
+        "push {r4,r5,r7,lr}\nsub sp,#16\nmov r4,r0\nmov r5,sp\n" \
+        "ldr r0,[r1,#12]\nstr r0,[sp,#12]\n" \
+        "movw ip,#" resume "\nmovt ip,#0x800c\nbx ip\n1: bx lr\n"); \
+}
+STRIP_WRAPPER(genie_rect_outline,"0xe51d")
+STRIP_WRAPPER(genie_rect_pattern,"0xe555")
+STRIP_WRAPPER(genie_rect_fill,"0xe58d")
+
 void genie_footer(void *widget){
     if(!SG_PAGE || !g.visible){
         if(SG_PAGE && !g.visible && g.clean_exit==1){
@@ -290,6 +315,7 @@ void genie_footer(void *widget){
     uint32_t age=FRAMES-g.opened;
     if(g.roll && age>=48000)genie_roll(g.pixels,&g.seq,g.root,g.octaves,g.head,g.head>=0?(unsigned)g.head/16:g.view);
     else {unsigned extra[]={g.length,g.rotation,g.lowvel,g.hivel,g.gate,g.octaves};genie_setup(g.pixels,age<48000,g.row,g.bpm,g.hits,g.scale,g.root,g.playing|(g.loop<<1)|(g.queued<<2),g.editing,extra);}
+    g.painting=1;
     int box[4]={0,0,127,63};
     COLOR(fb,0xffffff,0);FILL(fb,box);
     COLOR(fb,0,0xffffff);
@@ -300,6 +326,7 @@ void genie_footer(void *widget){
         box[0]=begin;box[1]=box[3]=y;box[2]=x-1;FILL(fb,box);
     }
     COLOR(fb,0xffffff,0);
+    g.painting=0;
 }
 
 int genie_encoder(void *page,int id,int delta){

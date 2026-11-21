@@ -45,7 +45,7 @@ observe(0x800d8019,lambda uc,*_:m._ret())
 def rectangle(uc,*_):
     rects.append(struct.unpack('<4i',uc.mem_read(uc.reg_read(ar.UC_ARM_REG_R1),16)))
     m._ret()
-observe(0x800ce581,rectangle)
+fill_observer=observe(0x800ce581,rectangle)
 background_draws=[]
 observe(0x801239e9,lambda uc,*_: (background_draws.append(1),m._ret()))
 bar_draws=[]
@@ -66,6 +66,28 @@ m.call(word(0x802256fc),widget)
 assert rects[0]==(0,0,127,63) and len(rects)>50
 assert all(0<=x0<=x1<128 and 0<=y0<=y1<64 for x0,y0,x1,y1 in rects)
 intro=rects.copy()
+# Exercise all three stock rectangle entry points with actual detour code.
+m.uc.hook_del(fill_observer)
+stock_rectangles=[]
+def rectangle_return(uc,*_):
+    stock_rectangles.append(1)
+    sp=uc.reg_read(ar.UC_ARM_REG_SP)
+    for index,reg in enumerate((ar.UC_ARM_REG_R4,ar.UC_ARM_REG_R5,ar.UC_ARM_REG_R7)):
+        uc.reg_write(reg,word(sp+16+4*index))
+    uc.reg_write(ar.UC_ARM_REG_SP,sp+32)
+    uc.reg_write(ar.UC_ARM_REG_PC,word(sp+28))
+for addr in (0x800ce51d,0x800ce555,0x800ce58d):
+    observe(addr,rectangle_return)
+box=0x3008b000
+for addr in (0x800ce511,0x800ce549,0x800ce581):
+    m.uc.mem_write(box,struct.pack('<4i',96,54,127,62))
+    m.call(addr,0x30089000,box)
+    assert not stock_rectangles
+m.uc.mem_write(box,struct.pack('<4i',96,4,127,12))
+m.call(0x800ce511,0x30089000,box)
+assert stock_rectangles==[1]
+fill_observer=observe(0x800ce581,rectangle)
+
 m.call(word(0x8022bbd4),widget)
 m.call(word(0x80222130),widget)
 m.call(0x80123ab1,widget)
