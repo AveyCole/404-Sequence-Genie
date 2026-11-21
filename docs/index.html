@@ -15,7 +15,7 @@
 <img src="./cheddar-butt.jpg" width="800" height="600" alt="Cheddar Butt, a gray and white cat sitting on a log">
 <div><h2 id="cheddar-title">Cheddar Butt</h2><div class="links"><a class="cta" href="https://buymeacoffee.com/aveycole">Buy Me a Coffee</a><a class="cta secondary" href="https://ko-fi.com/aveycole">Ko-fi</a></div></div>
 </section>
-<section class="panel" id="builder"><h2>Firmware builder</h2><div><p class="status"><strong>Experimental build.</strong> Emulator checks passed. The latest build still needs testing on a physical unit, including the display and bounce-to-pad behavior.</p><p>Select your original <strong>Roland 5.52 APP1</strong> to apply SP-ETC v9.53 and Genie in one pass. You can also select an exact SP-ETC v9.53 APP1. Checksums are verified and all firmware processing stays in your browser.</p><form id="form"><label for="input">Roland 5.52 or SP-ETC v9.53 APP1 file</label><input id="input" type="file" accept=".bin" required><button id="build">Build and download APP1</button><p role="status" id="result"></p></form></div></section>
+<section class="panel" id="builder"><h2>Firmware builder</h2><div><p class="status"><strong>Experimental build.</strong> Emulator checks passed. The latest build still needs testing on a physical unit, including the display and bounce-to-pad behavior.</p><p>Select your original <strong>Roland 5.52 APP1</strong> to apply <strong>DOOM OS 0.6.1 (ED5E), SP-ETC v9.53, and Sequence Genie</strong> in one pass. The build includes the full feature set of that DOOM OS release as carried by SP-ETC. You can also select an exact SP-ETC v9.53 APP1. Checksums are verified and all firmware processing stays in your browser.</p><form id="form"><label for="input">Roland 5.52 or SP-ETC v9.53 APP1 file</label><input id="input" type="file" accept=".bin" required><button id="build">Build and download APP1</button><p role="status" id="result"></p></form></div></section>
 <section class="panel" id="controls">
 <h2>Hardware controls</h2>
 <div>
@@ -24,7 +24,7 @@
 <dt>DATA / PUSH ENTER</dt><dd>Turn to select a setup row. Push to enter edit mode, turn to change the value, then push again to leave edit mode. In the piano roll, turn DATA while stopped to browse bars. Push DATA to return to setup and toggle edit mode.</dd>
 <dt>Pads 1 and 2</dt><dd>Move to the previous or next setup row.</dd>
 <dt>Pads 3 and 4</dt><dd>Decrease or increase the selected value. On Phrase, Pad 3 generates a new phrase and Pad 4 mutates the current one. On Notes or Rhythm, either pad rerolls that part.</dd>
-<dt>Pad 11</dt><dd>Bounce the first pass to the first empty, unprotected sample pad. REV captures backward. PING captures its forward pass. Stop playback before pressing it. Wait for the destination message, then enable LOOP on that sample pad to repeat the result.</dd>
+<dt>Pad 11</dt><dd>Bounce the first pass to the first empty, unprotected sample pad. Stop playback before pressing it and wait for the destination message. ONCE saves with LOOP off. LOOP saves a forward loop. REV records the notes in reverse order and saves them as a loop. PING records the forward pass and enables the sample pad’s native ping-pong. GATE defaults off on looping bounces.</dd>
 <dt>Pad 12</dt><dd>While playing, queue a fresh phrase for the next boundary. Press again to cancel. With looping off, the queued phrase plays once.</dd>
 <dt>Pad 13</dt><dd>Stop playback and undo the most recent edit or phrase change.</dd>
 <dt>Pad 14</dt><dd>Cycle ONCE, LOOP, REV, and PING. LOOP repeats forward. REV repeats backward. PING alternates direction and plays each turnaround step once. While playing, a new mode takes effect at the next boundary.</dd>
@@ -54,7 +54,7 @@
 <p class="control-note">Editing a value, rerolling, or using Undo stops playback. Use Pad 12 for a phrase change at the next loop boundary.</p>
 </div>
 </section>
-<section class="panel"><h2>Compatibility</h2><div><p>Built for SP-ETC v9.53 on Roland system program 5.52. Genie adds 19 REDUX scales, independent note and rhythm rerolls, and an eight-bar piano roll.</p><p>Keep the original Roland firmware pair and a project backup before testing. The Genie builder produces APP1 only.</p></div></section>
+<section class="panel"><h2>Compatibility</h2><div><p>Built on SP-ETC v9.53 for Roland 5.52, with all DOOM OS 0.6.1 features included. Genie adds 19 REDUX scales, independent note and rhythm rerolls, and an eight-bar piano roll.</p><p>Keep the original Roland firmware pair and a project backup before testing. The Genie builder produces APP1 only.</p></div></section>
 
 </main><footer><div class="wrap">Based on <a href="https://github.com/tracelistener/SP-ETC">SP-ETC</a> by tracelistener.</div></footer>
 <script src="./kits-data.js"></script>

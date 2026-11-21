@@ -352,6 +352,20 @@ markers[0x68]=1000
 assert m.call(trim)==0 and markers[0x68]==1000
 print('Verified the first-pass capture window, paired near-zero loop markers, and rejection of a short take')
 
+# Exercise mode inheritance through the real stock pad setter and getter.
+with (ROOT/'build/genie.elf').open('rb') as fp:
+    pad_playback=ELFFile(fp).get_section_by_name('.symtab').get_symbol_by_name('set_pad_playback')[0]['st_value']
+pad_test=Machine(image)
+for address,result in ((0x8001aa78,0),(0x800d9e30,1)):
+    pad_test.uc.hook_add(UC_HOOK_CODE,lambda uc,*_,result=result:pad_test._ret(result),
+                         begin=address,end=address)
+for mode,expected in enumerate(((1,0,0),(0,1,0),(0,1,0),(0,1,2))):
+    pad_test.call(0x800da721,0x82e2cd08,0x6a,1,0)
+    pad_test.call(pad_playback,0,mode)
+    actual=tuple(pad_test.call(0x800dc6b9,0x82e2cd08,field,0) for field in (0x6a,0x6b,0x75))
+    assert actual==expected,(mode,actual,expected)
+print('Verified stock pad GATE, LOOP and ping-pong flags for all four bounce modes')
+
 if len(sys.argv)>1:
     def render_release(firmware, kind, env=0, blocks_to_render=22):
         synth=Machine(firmware)
