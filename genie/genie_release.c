@@ -1,16 +1,16 @@
 #include <stdint.h>
 
-typedef int (*envelope_fn)(uint8_t *, int);
 extern int genie_stock_envelope(uint8_t *voice, int sample);
 
 /* Live Sound Generator slots. Export voices retain the stock envelope path. */
 static struct {
     int filtered;
-    unsigned age;
+    unsigned age, attack;
 } release_filter[4] __attribute__((section(".release_state")));
 
 __attribute__((section(".release"),used))
 int genie_release_envelope(uint8_t *voice,int sample){
+    unsigned fresh=*(const uint32_t *)(voice+0x18c)==0;
     int output=genie_stock_envelope(voice,sample);
     unsigned type=voice[0x70];
     if(type<15 || type>31)return output;
@@ -22,7 +22,15 @@ int genie_release_envelope(uint8_t *voice,int sample){
         if(offset>=3*0x1b0u || offset%0x1b0u)return output;
         slot=1+offset/0x1b0u;
     }
+    if(fresh || !voice[0])release_filter[slot].attack=0;
     if(!voice[0] || !voice[1]){
+        /* The captured startup burst lasts roughly two milliseconds. Bring
+         * added live waves in over 384 frames, ahead of the stock mixer. */
+        unsigned attack=release_filter[slot].attack;
+        if(voice[0] && attack<384){
+            output=output*(int)attack/384;
+            release_filter[slot].attack=attack+1;
+        }
         release_filter[slot].age=0;
         release_filter[slot].filtered=output*256;
         return output;
@@ -45,7 +53,7 @@ int genie_release_envelope(uint8_t *voice,int sample){
     return blend;
 }
 
-__attribute__((naked,section(".release")))
+__attribute__((naked,section(".text.genie_stock_envelope")))
 int genie_stock_envelope(uint8_t *voice,int sample){
     __asm__ volatile(
         "push.w {r4-r9,lr}\n"

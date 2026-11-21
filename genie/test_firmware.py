@@ -327,8 +327,10 @@ if len(sys.argv)>1:
     for kind in range(15,32):
         dry=render_release(source,kind)
         smooth=render_release(image,kind)
-        assert dry[:640]==smooth[:640],kind
+        assert dry[384:640]==smooth[384:640],kind
+        assert abs(smooth[0])<=abs(dry[0]),kind
+        assert max(map(abs,smooth[:128]))<=max(map(abs,dry[:128])),kind
         assert not any(smooth[1088:]),kind
         change=lambda x: sum((b-a)**2 for a,b in zip(x[639:],x[640:]))
         assert change(smooth)<=change(dry),kind
-    print('Real audio render: unchanged holds and stock wave, lower release edge energy on all 17 added waves')
+    print('Real audio render: smoothed starts, unchanged sustained and stock tones, lower release edge energy on all 17 added waves')
