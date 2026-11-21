@@ -15,7 +15,7 @@ from build_start_fix import refs_into
 from elftools.elf.elffile import ELFFile
 
 PARENT = 'faeea5b004273f2dbcfca00387cfcc59078d3ba42fd832d52d363209d8b3b75e'
-SLOTS = {".clock": (0x83fe1c84,0x83fe2000), ".voice": (0x83fece70,0x83fed000), ".clock_state": (0x83fdb420,0x83fdb440), '.capture_fade': (0x83fe7eb0,0x83fe8000), '.capture': (0x83fe5d88,0x83fe6000), '.capture_poll': (0x83feee68,0x83fef000), '.capture_state': (0x83fef0b8,0x83fef100), '.undo': (0x83fa1bc0,0x83fa2000), '.controls': (0x83fa09c0,0x83fa1000), '.text': (0x83fc8480, 0x83fc9000), '.display': (0x83fdd7c0, 0x83fde000), '.roll': (0x83fd6a80,0x83fd7000), '.state': (0x83fd87c0, 0x83fd9000)}
+SLOTS = {".release": (0x83fe6aa0,0x83fe6c00), ".release_state": (0x83fd3cc0,0x83fd4000), ".clock": (0x83fe1c84,0x83fe2000), ".voice": (0x83fece70,0x83fed000), ".clock_state": (0x83fdb420,0x83fdb440), '.capture_fade': (0x83fe7eb0,0x83fe8000), '.capture': (0x83fe5d88,0x83fe6000), '.capture_poll': (0x83feee68,0x83fef000), '.capture_state': (0x83fef0b8,0x83fef100), '.undo': (0x83fa1bc0,0x83fa2000), '.controls': (0x83fa09c0,0x83fa1000), '.text': (0x83fc8480, 0x83fc9000), '.display': (0x83fdd7c0, 0x83fde000), '.roll': (0x83fd6a80,0x83fd7000), '.state': (0x83fd87c0, 0x83fd9000)}
 HOOKS = [(0x8022209c, 0x801239e9, "genie_parameter_background"), (0x8022bbd4, 0x83fe7595, "genie_column"), (0x802296a4, 0x83fd4001, 'genie_press'), (0x802296a8, 0x83fd4079, 'genie_release'),
          (0x80229678, 0x83fe76e3, 'genie_poll'), (0x802256fc, 0x83fe7669, 'genie_footer'), (0x80229688,0x8015c531,'genie_encoder'), (0x80229680,0x8015c551,'genie_key'), (0x80229684,0x8015bf79,'genie_keyup')]
 
@@ -28,6 +28,8 @@ def build(input_path, dest, zig):
     ld = tmp / 'genie.ld'
     ld.write_text("""ENTRY(genie_press)
 SECTIONS {
+ .release 0x83fe6aa0 : { KEEP(*(.release)) }
+ .release_state 0x83fd3cc0 : { *(.release_state) }
  .clock 0x83fe1c84 : { KEEP(*(.clock)) *(.capture_range) }
  .voice 0x83fece70 : { *(.voice) }
  .clock_state 0x83fdb420 : { *(.clock_state) }
@@ -49,7 +51,7 @@ SECTIONS {
                     '-target', 'thumb-freestanding-eabihf', '-mcpu=cortex_m7+vfp4d16',
                     '-DGENIE_ON_DEVICE','-Os','-g','-fno-lto','-Wl,-e,genie_press','-Wl,-u,genie_release','-Wl,-u,genie_poll','-Wl,-u,genie_footer','-ffreestanding','-fno-builtin','-ffunction-sections','-fdata-sections',
                     '-nostdlib','-Wl,--gc-sections','-Wl,--no-undefined','-Wl,-T,'+ld.as_posix(),
-                    *[str(ROOT/x) for x in ('genie_v953.c','genie_bounce.c','sequence_perform.c','genie_screen.c')],
+                    *[str(ROOT/x) for x in ('genie_v953.c','genie_bounce.c','genie_release.c','sequence_perform.c','genie_screen.c')],
                     '-o',str(elf)],check=True)
     rows = list(scatter(parent))
     rt = Runtime(parent)
@@ -102,6 +104,15 @@ SECTIONS {
             offset = file_offset(parent,address,len(patch))
             img[offset:offset+len(patch)] = patch
             blocks.append((address,patch))
+        release_site = 0x83f80480
+        original = bytes.fromhex('2de9f04349f60002c8f22402')
+        if rt.read(release_site,len(original)) != original:
+            raise ValueError('Unexpected Sound Generator envelope prologue')
+        target = obj.get_section_by_name('.symtab').get_symbol_by_name('genie_release_envelope')[0]['st_value']
+        patch = assemble(jump(target)+'nop',release_site)
+        offset = file_offset(parent,release_site,len(patch))
+        img[offset:offset+len(patch)] = patch
+        blocks.append((release_site,patch))
         clock_site = 0x83fa21c6
         if rt.read(clock_site,10) != bytes.fromhex('42f2412cc8f2fa3ce047'):
             raise ValueError('Unexpected Sound Generator render hook')

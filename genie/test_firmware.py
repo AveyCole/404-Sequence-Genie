@@ -302,3 +302,33 @@ assert markers=={0x67:16,0x68:1040,0x71:16} and len(recharged)==2
 markers[0x68]=1000
 assert m.call(trim)==0 and markers[0x68]==1000
 print('Verified the exact faded loop range and rejection of a short take')
+
+if len(sys.argv)>1:
+    def render_release(firmware, kind, env=0):
+        synth=Machine(firmware)
+        voice,bus=0x80249800,0x3008a000
+        synth.uc.mem_write(voice,bytes(0x1b0))
+        synth.call(0x80132341,voice)
+        for offset,value in ((0x10,env),(0x48,50),(0x60,4400),(0x180,3),
+                             (0x5c,12),(0x74,10000),(0x198,10000)):
+            synth.w32(voice+offset,value)
+        synth.uc.mem_write(voice+0x70,bytes([kind,kind]))
+        synth.call(0x800d0669,voice,1)
+        blocks=[]
+        for block in range(22):
+            if block==10:synth.call(0x800d0669,voice,0)
+            synth.uc.mem_write(bus,bytes(64*14*4))
+            synth.call(0x1fd81,0,bus,64,14)
+            blocks.extend(struct.unpack('<896i',synth.uc.mem_read(bus,64*14*4))[::14])
+        return blocks
+
+    source=Path(sys.argv[1]).read_bytes()
+    assert render_release(source,0)==render_release(image,0)
+    for kind in range(15,32):
+        dry=render_release(source,kind)
+        smooth=render_release(image,kind)
+        assert dry[:640]==smooth[:640],kind
+        assert not any(smooth[1088:]),kind
+        change=lambda x: sum((b-a)**2 for a,b in zip(x[639:],x[640:]))
+        assert change(smooth)<=change(dry),kind
+    print('Real audio render: unchanged holds and stock wave, lower release edge energy on all 17 added waves')
