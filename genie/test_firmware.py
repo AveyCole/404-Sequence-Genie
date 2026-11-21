@@ -263,21 +263,17 @@ parts=[int(i.op_str.split('#')[-1],0) for i in instructions]
 feed=parts[0]|parts[1]<<16
 packet=0x3008a000
 raw=struct.pack('<16h',10000,-10000,*(1234,)*14)*64
-def capture_block(frame):
+def capture_block(frame, samples=raw):
     m.w32(capture_state+28,frame)
-    m.uc.mem_write(packet,raw)
+    m.uc.mem_write(packet,bytes(samples))
     m.call(feed,packet,len(raw))
     return list(struct.iter_unpack('<16h',bytes(m.uc.mem_read(packet,len(raw)))))
-head=capture_block(0)
-middle=capture_block(512)
-tail=capture_block(960)
-assert head[0][:2]==(0,0) and 0<head[-1][0]<10000
-assert middle[0][:2]==(10000,-10000)
-assert 0<tail[0][0]<10000 and tail[-1][:2]==(0,0)
-assert all(row[2:]==(1234,)*14 for row in head+middle+tail)
+assert all(row==(10000,-10000,*(1234,)*14)
+           for frame in (0,512,960)
+           for row in capture_block(frame))
 m.w32(capture_state,0)
 assert capture_block(0)[0][:2]==(10000,-10000)
-print('Bounce feed fades both sample edges, leaves other channels and stock captures unchanged')
+print('Bounce observes audio without applying any sample fade')
 
 # Start playback on a render boundary after RX capture starts. The saved
 # window skips capture lead and effects latency only.
@@ -290,19 +286,18 @@ capture_block(64)
 assert m.call(capture_clock)==1
 window=128+75
 assert word(capture_state+32)==window
-window_head=capture_block(window)
-assert window_head[0][:2]==(0,0)
-assert window_head[-1][:2]==(9843,-9843)
-assert capture_block(window+64)[0][:2]==(10000,-10000)
+matching=bytearray(raw)
+struct.pack_into('<hh',matching,19*32,0,0) # nominal +3 frames on both edges
+assert capture_block(window-16,matching)[19][:2]==(0,0)
 assert m.call(capture_clock)==2
-assert capture_block(window+1024-64)[-1][:2]==(0,0)
+assert capture_block(window+1024-17,matching)[19][:2]==(0,0)
 assert m.call(capture_clock)==3
 
 # Stock finalization can move START and leave extra recorder frames at END.
 # Exercise the exact range rewrite with a stereo file whose data begins at frame 16.
 with (ROOT/'build/genie.elf').open('rb') as fp:
     trim=ELFFile(fp).get_section_by_name('.symtab').get_symbol_by_name('set_loop_range')[0]['st_value']
-m.w32(capture_state+28,window+1024)
+m.w32(capture_state+28,window+1024+16)
 m.w32(0x82e0e970,0x3008c000)
 m.w32(0x3008c1c0,108)
 m.w32(0x82e495e4+8,2)
@@ -320,12 +315,12 @@ observe(0x800dda39,lambda uc,*_: (uc.reg_write(ar.UC_ARM_REG_R0,0),m._ret()))
 for address in (0x800d6391,0x800d7509):
     observe(address,lambda uc,*_: (recharged.append(1),m._ret()))
 assert m.call(trim)==1
-assert markers=={0x67:16+window,0x68:1040+window,0x71:16+window} and len(recharged)==2
+assert markers=={0x67:19+window,0x68:1043+window,0x71:19+window} and len(recharged)==2
 env=m.uc.mem_read(0x82e3c508+0x64,10)
-assert env[0:3]==bytes([5,16,0]) and env[9]==1
+assert env[0:3]==bytes(3)
 markers[0x68]=1000
 assert m.call(trim)==0 and markers[0x68]==1000
-print('Verified the first-pass capture window, exact faded loop range, and rejection of a short take')
+print('Verified the first-pass capture window, paired near-zero loop markers, and rejection of a short take')
 
 if len(sys.argv)>1:
     def render_release(firmware, kind, env=0, blocks_to_render=22):

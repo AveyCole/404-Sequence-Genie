@@ -14,6 +14,24 @@ static volatile struct {
     char message[10];
 } take __attribute__((section(".capture_state")));
 
+enum { SEAM_RADIUS=16, SEAM_COUNT=2*SEAM_RADIUS+1 };
+static int16_t seam_head[SEAM_COUNT][2] __attribute__((section(".release_state")));
+static int16_t seam_tail[SEAM_COUNT][2] __attribute__((section(".release_state")));
+
+__attribute__((section(".capture_sync"),noinline))
+static unsigned seam_start(void){
+    unsigned best=SEAM_RADIUS,best_score=UINT32_MAX;
+    for(unsigned i=0;i<SEAM_COUNT;++i){
+        unsigned score=__builtin_abs((int)i-SEAM_RADIUS)*4;
+        for(unsigned ch=0;ch<2;++ch){
+            int head=seam_head[i][ch],tail=seam_tail[i][ch];
+            score+=__builtin_abs(head)+2u*__builtin_abs(head-tail);
+        }
+        if(score<best_score){best=i;best_score=score;}
+    }
+    return take.window-SEAM_RADIUS+best;
+}
+
 static SLOT void command(unsigned op,unsigned value){
     CALL3(0x800e25c1u)(op,value,0);
 }
@@ -65,17 +83,17 @@ SLOT void genie_bounce_start(unsigned now,unsigned frames){
 }
 
 /* Stock finalization may trim the onset and retain recorder stop latency.
- * Restore the physical first captured frame and use the same frame count
- * that the RX fade used, so pad playback wraps at the faded boundary. */
+ * Pick paired boundaries near the audio clock's start and end. Shift both
+ * markers together so the loop duration is exactly the phrase duration. */
 __attribute__((section(".capture_range"),noinline))
 static unsigned set_loop_range(void){
     unsigned pad=take.pad;
     unsigned info=0x82e495e4u+36*pad;
     unsigned engine=U32(0x82e0e970u);
-    if(!engine || U32(info+8)!=2 || take.written<take.window+take.frames)return 0;
+    if(!engine || U32(info+8)!=2 || take.written<take.window+take.frames+SEAM_RADIUS)return 0;
     unsigned offset=U32(info+12),data=U32(engine+0x1c0);
     if(data<offset || ((data-offset)&3))return 0;
-    unsigned start=(data-offset)/4+take.window;
+    unsigned start=(data-offset)/4+seam_start();
     unsigned end=start+take.frames;
     int saved_end=(int)CALL3(0x800dc6b9u)(0x82e2cd08u,0x68,pad);
     if(end<start || saved_end<0 || (unsigned)saved_end<end)return 0;
@@ -90,14 +108,6 @@ static unsigned set_loop_range(void){
     if(CALL3(0x800dc6b9u)(0x82e2cd08u,0x67,pad)!=start ||
        CALL3(0x800dc6b9u)(0x82e2cd08u,0x68,pad)!=end ||
        CALL3(0x800dc6b9u)(0x82e2cd08u,0x71,pad)!=start)return 0;
-    /* SP-ETC's FINE + FIRST pad envelope applies this attack once
-     * per pad trigger. The sample itself keeps its short seam fades. */
-    volatile uint8_t *envelope=(volatile uint8_t *)(0x82e3c508u+pad*0x80u);
-    envelope[0x65]=16;                 /* about 1.6 ms */
-    envelope[0x66]=0;
-    envelope[0x64]=5;
-    envelope[0x6d]=1;
-    U8(0x82e2cd24u)=1;
     return 1;
 }
 
@@ -126,7 +136,7 @@ void genie_bounce_poll(unsigned now,unsigned cancel,unsigned finished){
         command(state==2?0x1a:0x18,0);take.phase=5;return;
     }
     if(phase==1 && state==1){command(0x17,0);take.phase=2;take.since=now;}
-    if(phase==3 && finished && take.written>=take.window+take.frames){command(0x18,0);take.phase=4;}
+    if(phase==3 && finished && take.written>=take.window+take.frames+SEAM_RADIUS){command(0x18,0);take.phase=4;}
 }
 
 /* Hand off on a render block after the recorder has consumed its first RX
@@ -138,33 +148,31 @@ unsigned genie_bounce_clock(void){
         take.phase=3;
         return 1;
     }
-    if(take.phase==3)return take.written>=take.window+take.frames?3:2;
+    if(take.phase==3)return take.written>=take.window+take.frames+SEAM_RADIUS?3:2;
     return 0;
 }
 
-/* Called after upstream RX processing, immediately before recorder ingestion.
- * Ramp both stereo channels to zero at the capture boundaries. */
+/* Observe the stereo samples at both candidate boundaries without writing
+ * to the recorder packet. The last played frame precedes the exclusive END. */
 __attribute__((section(".capture_fade"),noinline))
 unsigned genie_bounce_feed(volatile int16_t *packet,unsigned bytes){
     unsigned phase=take.phase;
     if(bytes==0x800 && U8(0x82e0e96au)==2 && phase>=2 && phase<=4){
         unsigned pos=take.written;
-        unsigned start=take.window,end=start+take.frames;
         if(phase>=3){
+            unsigned start=take.window-SEAM_RADIUS;
+            unsigned end=start+take.frames-1;
             for(unsigned i=0;i<64;++i){
-                unsigned frame=pos+i;
-                if(frame<start || frame>=end)continue;
-                unsigned head=frame-start,tail=end-1-frame;
-                unsigned distance=head<tail?head:tail;
-                unsigned gain=distance<64?distance*4:256;
-                if(gain<256){
-                    packet[16*i]=(int16_t)(((int32_t)packet[16*i]*(int)gain)/256);
-                    packet[16*i+1]=(int16_t)(((int32_t)packet[16*i+1]*(int)gain)/256);
+                unsigned head=pos+i-start,tail=pos+i-end;
+                if(head<SEAM_COUNT){
+                    seam_head[head][0]=packet[16*i];seam_head[head][1]=packet[16*i+1];
+                }
+                if(tail<SEAM_COUNT){
+                    seam_tail[tail][0]=packet[16*i];seam_tail[tail][1]=packet[16*i+1];
                 }
             }
         }
-        pos+=64;
-        take.written=pos;
+        take.written=pos+64;
     }
     return ((unsigned (*)(volatile int16_t *,unsigned))0x1ca81u)(packet,bytes);
 }
