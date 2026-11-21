@@ -15,7 +15,7 @@ from build_start_fix import refs_into
 from elftools.elf.elffile import ELFFile
 
 PARENT = 'faeea5b004273f2dbcfca00387cfcc59078d3ba42fd832d52d363209d8b3b75e'
-SLOTS = {".capture_sync": (0x83fe4700,0x83fe4800), ".release_state": (0x83fd3cc0,0x83fd4000), ".clock": (0x83fe1c84,0x83fe2000), ".voice": (0x83fece70,0x83fed000), ".clock_state": (0x83fdb420,0x83fdb440), '.capture': (0x83fe5d88,0x83fe6000), '.capture_poll': (0x83feee68,0x83fef000), '.capture_state': (0x83fef0b8,0x83fef100), '.undo': (0x83fa1bc0,0x83fa2000), '.controls': (0x83fa09c0,0x83fa1000), '.text': (0x83fc8480, 0x83fc9000), '.display': (0x83fdd7c0, 0x83fde000), '.roll': (0x83fd6a80,0x83fd7000), '.state': (0x83fd87c0, 0x83fd9000)}
+SLOTS = {".capture_range": (0x83fe6aa0,0x83fe6c00), ".capture_sync": (0x83fe4700,0x83fe4800), ".release_state": (0x83fd3cc0,0x83fd4000), ".clock": (0x83fe1c84,0x83fe2000), ".voice": (0x83fece70,0x83fed000), ".clock_state": (0x83fdb420,0x83fdb440), '.capture': (0x83fe5d88,0x83fe6000), '.capture_poll': (0x83feee68,0x83fef000), '.capture_state': (0x83fef0b8,0x83fef100), '.undo': (0x83fa1bc0,0x83fa2000), '.controls': (0x83fa09c0,0x83fa1000), '.text': (0x83fc8480, 0x83fc9000), '.display': (0x83fdd7c0, 0x83fde000), '.roll': (0x83fd6a80,0x83fd7000), '.state': (0x83fd87c0, 0x83fd9000)}
 HOOKS = [(0x80225790, 0x80140291, "genie_status_tile"), (0x8022209c, 0x801239e9, "genie_parameter_background"), (0x8022bbd4, 0x83fe7595, "genie_column"), (0x802296a4, 0x83fd4001, 'genie_press'), (0x802296a8, 0x83fd4079, 'genie_release'),
          (0x80229678, 0x83fe76e3, 'genie_poll'), (0x802256fc, 0x83fe7669, 'genie_footer'), (0x80229688,0x8015c531,'genie_encoder'), (0x80229680,0x8015c551,'genie_key'), (0x80229684,0x8015bf79,'genie_keyup')]
 
@@ -29,7 +29,8 @@ def build(input_path, dest, zig):
     ld.write_text("""ENTRY(genie_press)
 SECTIONS {
  .release_state 0x83fd3cc0 : { *(.release_state) }
- .clock 0x83fe1c84 : { KEEP(*(.clock)) *(.capture_range) }
+ .capture_range 0x83fe6aa0 : { *(.capture_range) }
+ .clock 0x83fe1c84 : { KEEP(*(.clock)) }
  .voice 0x83fece70 : { *(.voice) }
  .clock_state 0x83fdb420 : { *(.clock_state) }
  .capture_sync 0x83fe4700 : { *(.capture_sync) }

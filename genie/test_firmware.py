@@ -146,11 +146,11 @@ for step in range(128):
         if step==127 and phase==0:
             roll_pixels=picture()
             assert (117,7,122,7) in roll_pixels,'playhead did not reach step 128'
-            assert all(y1<52 for _,_,_,y1 in roll_pixels[1:]), 'roll overlaps stock strip'
+            assert all(y1<52 or x1<88 for _,_,x1,y1 in roll_pixels[1:]), 'roll overlaps stock strip'
 assert len(notes)==20,'changing view interrupted or restarted the eight-bar phrase'
 assert all((frame-start)%6000==0 for frame in note_frames[5:]),note_frames
 print('Eight-bar playback stayed on the audio grid without running the UI poll')
-m.pad(14);m.pad(14,0)
+for _ in range(3):m.pad(14);m.pad(14,0)
 # Queue from the final bar, with looping off. Playback continues for exactly one phrase.
 def tap(index):
     m.pad(index);m.pad(index,0)
@@ -215,6 +215,36 @@ assert column_draws == [1], 'stock column did not resume'
 print('Genie closed and stock pad dispatch resumed')
 
 # Compare the actual CTRL event dispatch with exact upstream SP-ETC.
+# Reverse starts on the last step; ping-pong turns without playing the
+# endpoints twice. Trace the real audio callback's displayed step indices.
+mode_start=offset+6000*130
+m.w32(0x8059226c,mode_start//2)
+m.key(KEY_SHIFT,True);tap(SUB_PAD);m.key(KEY_SHIFT,False)
+mode_start+=60000
+tick(mode_start)
+tap(14)
+def marker(frame,x):
+    tick(frame)
+    assert (x,7,x+5,7) in picture(),(frame,x)
+tap(13);tap(13) # reverse
+tap(15)
+marker(mode_start,117)
+marker(mode_start+6000,110)
+marker(mode_start+6000*128,117)
+tap(15)
+mode_start+=6000*129
+tick(mode_start)
+tap(13) # ping-pong
+tap(15)
+marker(mode_start,12)
+marker(mode_start+6000*127,117)
+marker(mode_start+6000*128,110)
+marker(mode_start+6000*254,12)
+marker(mode_start+6000*255,19)
+tap(15)
+m.key(0x22,True);m.key(0x22,False)
+print('Verified Pad 14 reverse and ping-pong playback across both turns')
+
 def shifted_ctrl_writes(firmware):
     machine=Machine(firmware)
     writes=[]

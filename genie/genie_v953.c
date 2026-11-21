@@ -17,7 +17,7 @@ typedef void (*page_handler)(void *);
 #define COLOR ((void (*)(void *,unsigned,unsigned))0x800d8019u)
 #define FILL ((void (*)(void *,const int *))0x800ce581u)
 extern void genie_setup(uint8_t *,unsigned,unsigned,unsigned,unsigned,unsigned,unsigned,unsigned,unsigned,const unsigned *);
-extern void genie_roll(uint8_t *,const sp_sequence *,unsigned,unsigned,int,unsigned);
+extern void genie_roll(uint8_t *,const sp_sequence *,unsigned,unsigned,int,unsigned,unsigned);
 extern unsigned genie_bounce_active(void);
 extern void genie_bounce_start(unsigned,unsigned);
 extern void genie_bounce_poll(unsigned,unsigned,unsigned);
@@ -32,6 +32,7 @@ static struct {
     uintptr_t footer_type;
     unsigned capturing,painting,exit_down,clean_exit,octaves,length,rotation,lowvel,hivel,gate,view,roll,editing,knobdown,row,bpm,hits,root,scale,held;
     volatile unsigned queued,loop,next,playing,visible;
+    unsigned reverse,skip_edge;
     volatile int head;
     int drawn;
 } g;
@@ -135,11 +136,11 @@ __attribute__((section(".controls"))) int genie_press(void *page,int pad,int vel
     case 10:if(!g.playing)genie_bounce_start(FRAMES,(g.length*720000u+g.bpm/2)/g.bpm);break;
     case 11:if(g.playing)g.queued^=1;break;
     case 12:stop();undo();break;
-    case 13:g.loop^=1;break;
+    case 13:g.loop=(g.loop+1)&3;break;
     case 14:g.roll^=1;g.editing=0;break;
     case 15:
         if(g.playing)stop();
-        else {g.started=FRAMES;g.next=0;__asm__ volatile("dmb" ::: "memory");g.playing=1;}
+        else {g.started=FRAMES;g.next=0;g.reverse=g.loop==2;g.skip_edge=0;__asm__ volatile("dmb" ::: "memory");g.playing=1;}
         break;
     }
     g.drawn=-100;redraw();return 0;
@@ -239,27 +240,33 @@ void genie_audio_tick(int frames){
     ORIGINAL_ARP_TICK(frames);
     if(!g.visible || !SG_PAGE){release_voice();return;}
     unsigned capture=genie_bounce_clock();
-    if(capture==1){g.started=FRAMES;g.next=0;g.head=-1;g.capturing=1;g.playing=1;}
+    if(capture==1){g.started=FRAMES;g.next=0;g.head=-1;g.reverse=g.loop==2;g.skip_edge=0;g.capturing=1;g.playing=1;}
     if(capture==3 || (g.capturing && !capture)){
         g.capturing=0;stop();release_voice();return;
     }
     if(!g.playing){release_voice();return;}
     uint32_t elapsed=FRAMES-g.started;
     unsigned step=elapsed*g.bpm/720000u;
-    if(step>=g.length){
+    unsigned span=g.length-g.skip_edge;
+    if(step>=span){
         release_voice();
         if(capture || !(g.loop || g.queued)){stop();return;}
-        if(!capture && g.queued){remember();g.seed=g.seed*1664525u+1013904223u;generate();g.queued=0;}
-        g.started+=(g.length*720000u+g.bpm/2)/g.bpm;
+        unsigned queued=g.queued;
+        if(queued){remember();g.seed=g.seed*1664525u+1013904223u;generate();g.queued=0;}
+        g.started+=(span*720000u+g.bpm/2)/g.bpm;
+        g.skip_edge=g.loop==3 && !queued;
+        g.reverse=g.skip_edge?!g.reverse:g.loop==2;
+        span=g.length-g.skip_edge;
         elapsed=FRAMES-g.started;
         step=elapsed*g.bpm/720000u;
         g.next=0;g.head=-1;
     }
     unsigned phase=elapsed*g.bpm-step*720000u;
-    if(step!=(unsigned)g.head || phase>=7200u*g.gate)release_voice();
-    if(step<g.length && step>=g.next){
-        g.head=(int)step;g.next=step+1;
-        sp_seq_step ev=g.seq.step[step];
+    unsigned index=g.reverse?span-1-step:step+g.skip_edge;
+    if(index!=(unsigned)g.head || phase>=7200u*g.gate)release_voice();
+    if(step<span && step>=g.next){
+        g.head=(int)index;g.next=step+1;
+        sp_seq_step ev=g.seq.step[index];
         if(ev.hit && phase<7200u*g.gate)start_voice(ev.note,ev.velocity);
     }
 }
@@ -277,7 +284,7 @@ __attribute__((section(".roll"))) void genie_parameter_background(void *widget){
 __attribute__((used,noinline)) unsigned genie_owns_display(void){
     return g.visible && SG_PAGE;
 }
-__attribute__((naked,section(".controls"))) void genie_parameter_bar(void *widget){
+__attribute__((naked,section(".roll"))) void genie_parameter_bar(void *widget){
     __asm__ volatile(
         "push {r0-r3,r4,lr}\n"
         "bl genie_owns_display\n"
@@ -330,8 +337,8 @@ void genie_footer(void *widget){
     void *fb=*(void **)((uint8_t *)widget+0x84);
     if(!fb)return;
     uint32_t age=FRAMES-g.opened;
-    if(g.roll && age>=48000)genie_roll(g.pixels,&g.seq,g.root,g.octaves,g.head,g.head>=0?(unsigned)g.head/16:g.view);
-    else {unsigned extra[]={g.length,g.rotation,g.lowvel,g.hivel,g.gate,g.octaves};genie_setup(g.pixels,age<48000,g.row,g.bpm,g.hits,g.scale,g.root,g.playing|(g.loop<<1)|(g.queued<<2),g.editing,extra);}
+    if(g.roll && age>=48000)genie_roll(g.pixels,&g.seq,g.root,g.octaves,g.head,g.head>=0?(unsigned)g.head/16:g.view,g.loop);
+    else {unsigned extra[]={g.length,g.rotation,g.lowvel,g.hivel,g.gate,g.octaves};genie_setup(g.pixels,age<48000,g.row,g.bpm,g.hits,g.scale,g.root,g.playing|(g.loop<<1)|(g.queued<<3),g.editing,extra);}
     g.painting=1;
     int box[4]={0,0,127,63};
     COLOR(fb,0xffffff,0);FILL(fb,box);

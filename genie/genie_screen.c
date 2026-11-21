@@ -69,6 +69,7 @@ void sp_genie_screen(uint8_t *p,const sp_sequence *s,unsigned bpm,int playhead,i
 static const uint8_t redux_title[]={
 #include "genie_logo.inc"
 };
+static const char loop_names[][5] __attribute__((section(".screen_strings")))={"ONCE","LOOP","REV","PING"};
 void genie_setup(uint8_t *p,unsigned intro,unsigned row,unsigned bpm,unsigned hits,
                  unsigned scale,unsigned root,unsigned playing,unsigned editing,const unsigned *extra) {
     if(intro){
@@ -88,7 +89,7 @@ void genie_setup(uint8_t *p,unsigned intro,unsigned row,unsigned bpm,unsigned hi
 #include "genie_scales.inc"
 #undef SCALE
     };
-    label(p,2,1,"SEQUENCE GENIE",1); label(p,99,1,playing&4?"QUEUED":editing?"EDIT":(playing&2?"LOOP":(playing?"PLAYING":"SELECT")),1);
+    label(p,2,1,"SEQUENCE GENIE",1); label(p,99,1,playing&8?"QUEUED":editing?"EDIT":loop_names[(playing>>1)&3],1);
     rect(p,0,8,128,1);
     for(unsigned i=0;i<5;i++){
         unsigned item=(row/5)*5+i;if(item>=13)break;
@@ -107,9 +108,10 @@ void genie_setup(uint8_t *p,unsigned intro,unsigned row,unsigned bpm,unsigned hi
     rect(p,0,51,128,1);label(p,1,56,"EDIT 15 ROLL 16 PLAY",1);
 }
 
-__attribute__((section(".roll"))) void genie_roll(uint8_t *p,const sp_sequence *seq,unsigned root,unsigned octaves,int head,unsigned page){
+__attribute__((section(".roll"))) void genie_roll(uint8_t *p,const sp_sequence *seq,unsigned root,unsigned octaves,int head,unsigned page,unsigned mode){
     for(unsigned i=0;i<1024;i++)p[i]=0;
     label(p,2,1,"PIANO ROLL",1);number(p,47,1,page+1);label(p,63,1,"15 SETUP 16 PLAY",1);
+    label(p,2,56,loop_names[mode],1);
     unsigned lanes=12*octaves;
     for(unsigned lane=0;lane<lanes;lane++){
         int y=9+(lanes-1-lane)*41/lanes;
