@@ -1,3 +1,15 @@
+# 404 Sequence Genie
+
+Sequence Genie extends the Sound Generator in SP-ETC v9.53 for the Roland SP-404MKII. See the [project page and browser builder](https://aveycole.github.io/404-Sequence-Genie/). The upstream SP-ETC documentation remains below.
+
+The current Genie build is experimental. It passes the emulator regression checks, but the latest build still needs hardware verification.
+
+## Build from source
+
+1. Use the upstream SP-ETC patcher to build v9.53 from Roland 5.52. Keep a copy of the resulting APP1.
+2. Install Zig 0.13.0 and the Python packages with `python -m pip install pyelftools capstone keystone-engine unicorn`.
+3. Run `python genie/build_genie.py path/to/SP404MKII_APP1.bin`, then `python genie/test_firmware.py`.
+4. To regenerate the web patch, run `python genie/make_web_patch.py path/to/SP404MKII_APP1.bin genie/build/SP404MKII_APP1.bin docs/genie-patch.json`.
 # Tracelistener's SP-404MKII Sound Generator mod
 
 **[Open the patcher](https://tracelistener.github.io/SP-ETC/)**
@@ -490,3 +502,4 @@ DOOM OS 0.6.1 ED5E base is by Quintus Oostendorp / Klangfeld Labs under the
 MIT License ([LICENSE](LICENSE)), retained unchanged. FX deep edit's parameter
 table comes from DM-404's `core/fx/fxmap.json` by Nicholas Petty and the dm-404
 contributors, under the MIT License ([THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)).
+
