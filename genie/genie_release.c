@@ -49,6 +49,12 @@ int genie_release_envelope(uint8_t *voice,int sample){
         int remaining=199-*(const int *)(voice+0x4c);
         if(remaining<=0)return 0;
         if(remaining<32)blend=blend*remaining/32;
+    } else {
+        /* SP-ETC v9.53 env_slot: live amplitude is the first float in
+         * each 40-byte envelope record. Taper only the last quiet tail. */
+        float amp=*(const volatile float *)(0x83fa0808u+40*slot);
+        if(amp<=0.00390625f)return 0;
+        if(amp<0.015625f)blend=(int)(blend*((amp-0.00390625f)*(256.0f/3.0f)));
     }
     return blend;
 }

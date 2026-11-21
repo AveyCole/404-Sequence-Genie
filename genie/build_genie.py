@@ -15,7 +15,7 @@ from build_start_fix import refs_into
 from elftools.elf.elffile import ELFFile
 
 PARENT = 'faeea5b004273f2dbcfca00387cfcc59078d3ba42fd832d52d363209d8b3b75e'
-SLOTS = {".release": (0x83fe6aa0,0x83fe6c00), ".release_state": (0x83fd3cc0,0x83fd4000), ".clock": (0x83fe1c84,0x83fe2000), ".voice": (0x83fece70,0x83fed000), ".clock_state": (0x83fdb420,0x83fdb440), '.capture_fade': (0x83fe7eb0,0x83fe8000), '.capture': (0x83fe5d88,0x83fe6000), '.capture_poll': (0x83feee68,0x83fef000), '.capture_state': (0x83fef0b8,0x83fef100), '.undo': (0x83fa1bc0,0x83fa2000), '.controls': (0x83fa09c0,0x83fa1000), '.text': (0x83fc8480, 0x83fc9000), '.display': (0x83fdd7c0, 0x83fde000), '.roll': (0x83fd6a80,0x83fd7000), '.state': (0x83fd87c0, 0x83fd9000)}
+SLOTS = {".release_state": (0x83fd3cc0,0x83fd4000), ".clock": (0x83fe1c84,0x83fe2000), ".voice": (0x83fece70,0x83fed000), ".clock_state": (0x83fdb420,0x83fdb440), '.capture_fade': (0x83fe7eb0,0x83fe8000), '.capture': (0x83fe5d88,0x83fe6000), '.capture_poll': (0x83feee68,0x83fef000), '.capture_state': (0x83fef0b8,0x83fef100), '.undo': (0x83fa1bc0,0x83fa2000), '.controls': (0x83fa09c0,0x83fa1000), '.text': (0x83fc8480, 0x83fc9000), '.display': (0x83fdd7c0, 0x83fde000), '.roll': (0x83fd6a80,0x83fd7000), '.state': (0x83fd87c0, 0x83fd9000)}
 HOOKS = [(0x8022209c, 0x801239e9, "genie_parameter_background"), (0x8022bbd4, 0x83fe7595, "genie_column"), (0x802296a4, 0x83fd4001, 'genie_press'), (0x802296a8, 0x83fd4079, 'genie_release'),
          (0x80229678, 0x83fe76e3, 'genie_poll'), (0x802256fc, 0x83fe7669, 'genie_footer'), (0x80229688,0x8015c531,'genie_encoder'), (0x80229680,0x8015c551,'genie_key'), (0x80229684,0x8015bf79,'genie_keyup')]
 
@@ -28,7 +28,6 @@ def build(input_path, dest, zig):
     ld = tmp / 'genie.ld'
     ld.write_text("""ENTRY(genie_press)
 SECTIONS {
- .release 0x83fe6aa0 : { KEEP(*(.release)) }
  .release_state 0x83fd3cc0 : { *(.release_state) }
  .clock 0x83fe1c84 : { KEEP(*(.clock)) *(.capture_range) }
  .voice 0x83fece70 : { *(.voice) }
@@ -39,7 +38,7 @@ SECTIONS {
  .capture_state 0x83fef0b8 : { *(.capture_state) }
  .controls 0x83fa09c0 : { KEEP(*(.controls)) }
  .undo 0x83fa1bc0 : { KEEP(*(.undo)) *(.screen_strings) }
- .text 0x83fc8480 : { KEEP(*(.text.genie_encoder)) KEEP(*(.text.genie_key)) KEEP(*(.text.genie_keyup)) KEEP(*(.text.genie_press)) KEEP(*(.text.genie_release))
+ .text 0x83fc8480 : { KEEP(*(.release)) KEEP(*(.text.genie_encoder)) KEEP(*(.text.genie_key)) KEEP(*(.text.genie_keyup)) KEEP(*(.text.genie_press)) KEEP(*(.text.genie_release))
  KEEP(*(.text.genie_footer)) KEEP(*(.text.genie_poll)) *(EXCLUDE_FILE (*genie_screen*.o) .text* .rodata*) }
  .state 0x83fd87c0 : { *(.data*) *(.bss*) *(COMMON) }
  .roll 0x83fd6a80 : { KEEP(*(.roll)) }

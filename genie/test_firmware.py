@@ -304,7 +304,7 @@ assert m.call(trim)==0 and markers[0x68]==1000
 print('Verified the exact faded loop range and rejection of a short take')
 
 if len(sys.argv)>1:
-    def render_release(firmware, kind, env=0):
+    def render_release(firmware, kind, env=0, blocks_to_render=22):
         synth=Machine(firmware)
         voice,bus=0x80249800,0x3008a000
         synth.uc.mem_write(voice,bytes(0x1b0))
@@ -315,7 +315,7 @@ if len(sys.argv)>1:
         synth.uc.mem_write(voice+0x70,bytes([kind,kind]))
         synth.call(0x800d0669,voice,1)
         blocks=[]
-        for block in range(22):
+        for block in range(blocks_to_render):
             if block==10:synth.call(0x800d0669,voice,0)
             synth.uc.mem_write(bus,bytes(64*14*4))
             synth.call(0x1fd81,0,bus,64,14)
@@ -334,3 +334,11 @@ if len(sys.argv)>1:
         change=lambda x: sum((b-a)**2 for a,b in zip(x[639:],x[640:]))
         assert change(smooth)<=change(dry),kind
     print('Real audio render: smoothed starts, unchanged sustained and stock tones, lower release edge energy on all 17 added waves')
+
+    # A preset release keeps its audible decay but reaches digital silence earlier.
+    dry=render_release(source,17,env=1,blocks_to_render=250)
+    smooth=render_release(image,17,env=1,blocks_to_render=250)
+    assert dry[384:640]==smooth[384:640]
+    assert any(smooth[640:1280])
+    assert max(i for i,x in enumerate(smooth) if x)<max(i for i,x in enumerate(dry) if x)
+    print('Preset release retains its audible decay and reaches silence sooner')
