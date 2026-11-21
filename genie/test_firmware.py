@@ -290,7 +290,11 @@ capture_block(64)
 assert m.call(capture_clock)==1
 window=128+75
 assert word(capture_state+32)==window
-assert capture_block(window)[0][:2]==(0,0)
+window_head=capture_block(window)
+assert window_head[0][:2]==(0,0)
+assert 0<window_head[-1][0]<1700
+assert capture_block(window+128)[0][:2]==(5000,-5000)
+assert capture_block(window+256)[0][:2]==(10000,-10000)
 assert m.call(capture_clock)==2
 assert capture_block(window+1024-64)[-1][:2]==(0,0)
 assert m.call(capture_clock)==3

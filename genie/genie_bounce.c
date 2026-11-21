@@ -146,10 +146,14 @@ unsigned genie_bounce_feed(volatile int16_t *packet,unsigned bytes){
                 unsigned frame=pos+i;
                 if(frame<start || frame>=end)continue;
                 unsigned head=frame-start,tail=end-1-frame;
-                unsigned gain=head<tail?head:tail;
-                if(gain<64){
-                    packet[16*i]=(int16_t)(((int32_t)packet[16*i]*(int)gain)/64);
-                    packet[16*i+1]=(int16_t)(((int32_t)packet[16*i+1]*(int)gain)/64);
+                /* Ease in over 256 frames to soften pad starts. Keep
+                 * the existing short fade at the far side of the seam. */
+                unsigned gain=256;
+                if(head<256)gain=(head*head*(768-2*head))>>16;
+                if(tail<64 && tail*4<gain)gain=tail*4;
+                if(gain<256){
+                    packet[16*i]=(int16_t)(((int32_t)packet[16*i]*(int)gain)/256);
+                    packet[16*i+1]=(int16_t)(((int32_t)packet[16*i+1]*(int)gain)/256);
                 }
             }
         }
