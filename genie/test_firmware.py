@@ -84,6 +84,7 @@ assert len(rects)>40 and rects!=intro
 def picture():
     rects.clear();m.call(word(0x802256fc),widget);return tuple(rects)
 before=picture()
+assert all(x1 < 88 for x0,y0,x1,y1 in before[1:] if y0 >= 55), 'setup footer overlaps stock strip'
 m.pad(1);m.pad(1,0)
 selected=picture()
 m.pad(3);m.pad(3,0)
@@ -109,7 +110,9 @@ for step in range(128):
         m.w32(0x8059226c,frame//2);m.call(word(0x80229678),page)
         if step==3 and phase==0:m.pad(14);m.pad(14,0)
         if step==127 and phase==0:
-            assert (117,59,122,59) in picture(),'playhead did not reach step 128'
+            roll_pixels=picture()
+            assert (117,7,122,7) in roll_pixels,'playhead did not reach step 128'
+            assert all(y1<52 for _,_,_,y1 in roll_pixels[1:]), 'roll overlaps stock strip'
 assert len(notes)==20,'changing view interrupted or restarted the eight-bar phrase'
 m.pad(14);m.pad(14,0)
 # Queue from the final bar, with looping off. Playback continues for exactly one phrase.

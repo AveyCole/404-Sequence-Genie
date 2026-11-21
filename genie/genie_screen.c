@@ -104,7 +104,7 @@ void genie_setup(uint8_t *p,unsigned intro,unsigned row,unsigned bpm,unsigned hi
         }
         if(item==row){rect(p,1,y,2,5);rect(p,3,y+1,1,3);dot(p,4,y+2);}
     }
-    rect(p,0,51,128,1);label(p,1,56,"PUSH EDIT   15 ROLL   16 PLAY",1);
+    rect(p,0,51,128,1);label(p,1,56,"EDIT 15 ROLL 16 PLAY",1);
 }
 
 __attribute__((section(".roll"))) void genie_roll(uint8_t *p,const sp_sequence *seq,unsigned root,unsigned octaves,int head,unsigned page){
@@ -112,7 +112,7 @@ __attribute__((section(".roll"))) void genie_roll(uint8_t *p,const sp_sequence *
     label(p,2,1,"PIANO ROLL",1);number(p,47,1,page+1);label(p,63,1,"15 SETUP 16 PLAY",1);
     unsigned lanes=12*octaves;
     for(unsigned lane=0;lane<lanes;lane++){
-        int y=10+(lanes-1-lane)*48/lanes;
+        int y=9+(lanes-1-lane)*41/lanes;
         unsigned pitch=(root+lane)%12;
         int black=(0x54au>>pitch)&1;
         rect(p,0,y,black?5:9,octaves==1?3:1);
@@ -120,10 +120,10 @@ __attribute__((section(".roll"))) void genie_roll(uint8_t *p,const sp_sequence *
     }
     for(unsigned step=0;step<16;step++){
         int x=12+7*step;
-        if(step%4==0)for(int y=9;y<58;y+=3)dot(p,x,y);
+        if(step%4==0)for(int y=9;y<50;y+=3)dot(p,x,y);
         sp_seq_step ev=seq->step[16*page+step];
         if(ev.hit && ev.note>=root && ev.note-root<lanes)
-            rect(p,x+1,10+(lanes-1-(ev.note-root))*48/lanes,5,octaves==1?3:1);
-        if((int)(16*page+step)==head){rect(p,x,9,1,49);rect(p,x,59,6,2);}
+            rect(p,x+1,9+(lanes-1-(ev.note-root))*41/lanes,5,octaves==1?3:1);
+        if((int)(16*page+step)==head){rect(p,x,8,1,42);rect(p,x,7,6,1);}
     }
 }
