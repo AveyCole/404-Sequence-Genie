@@ -15,14 +15,14 @@ for src, dest, size, kind in scatter(image):
 m=Machine(image);print('constructors and Sound Generator page OK',flush=True)
 def word(a):return int.from_bytes(m.uc.mem_read(a,4),'little')
 def observe(fn,cb):return m.uc.hook_add(UC_HOOK_CODE,cb,begin=fn&~1,end=fn&~1)
-pages=[];notes=[];note_frames=[]
+pages=[];notes=[];note_frames=[];release_frames=[]
 observe(word(0x802296a4),lambda uc,*_:pages.append(uc.reg_read(ar.UC_ARM_REG_R0)))
 def voice(uc,*_):
     ptr=uc.reg_read(ar.UC_ARM_REG_R0)
     on=uc.reg_read(ar.UC_ARM_REG_R1)
     note=(word(ptr+0x5c)+48)&0xffffffff
     notes.append((note,word(ptr+0x74)//100 if on else 0))
-    if on:note_frames.append(word(0x8059226c)*2)
+    (note_frames if on else release_frames).append(word(0x8059226c)*2)
     uc.mem_write(ptr,bytes([int(bool(on)),0]))
     m._ret()
 observe(0x800d0669,voice)
@@ -149,7 +149,8 @@ for step in range(128):
             assert all(y1<52 or x1<88 for _,_,x1,y1 in roll_pixels[1:]), 'roll overlaps stock strip'
 assert len(notes)==20,'changing view interrupted or restarted the eight-bar phrase'
 assert all((frame-start)%6000==0 for frame in note_frames[5:]),note_frames
-print('Eight-bar playback stayed on the audio grid without running the UI poll')
+assert all(off-on==4500 for on,off in zip(note_frames[5:],release_frames[5:]))
+print('Eight-bar playback and 75% note-off timing verified without the UI poll')
 for _ in range(3):m.pad(14);m.pad(14,0)
 # Queue from the final bar, with looping off. Playback continues for exactly one phrase.
 def tap(index):
@@ -254,6 +255,15 @@ marker(mode_start+6000*128,110)
 marker(mode_start+6000*254,12)
 marker(mode_start+6000*255,19)
 tap(15)
+# The Random Vel row feeds a real fixed velocity into the note trigger.
+tap(14)
+tap(1)
+tap(2)
+tap(15)
+audio_tick()
+assert notes[-1][1]==100
+tap(15)
+tap(3)
 m.key(0x22,True);m.key(0x22,False)
 print('Verified Pad 14 reverse and ping-pong playback across both turns')
 
@@ -410,7 +420,7 @@ for mode,expected in enumerate(((1,0,0),(0,1,0),(0,1,0),(0,1,0))):
 print('Verified stock pad GATE, LOOP, PLAY and Original BPM for all four bounce modes')
 
 if len(sys.argv)>1:
-    def render_release(firmware, kind, env=0, blocks_to_render=22):
+    def render_release(firmware, kind, env=0, blocks_to_render=22, genie_velocity=None):
         synth=Machine(firmware)
         voice,bus=0x80249800,0x3008a000
         synth.uc.mem_write(voice,bytes(0x1b0))
@@ -419,7 +429,12 @@ if len(sys.argv)>1:
                              (0x5c,12),(0x74,10000),(0x198,10000)):
             synth.w32(voice+offset,value)
         synth.uc.mem_write(voice+0x70,bytes([kind,kind]))
-        synth.call(0x800d0669,voice,1)
+        if genie_velocity is None:
+            synth.call(0x800d0669,voice,1)
+        else:
+            with (ROOT/'build/genie.elf').open('rb') as fp:
+                start_voice=ELFFile(fp).get_section_by_name('.symtab').get_symbol_by_name('start_voice')[0]['st_value']
+            synth.call(start_voice,60,genie_velocity)
         blocks=[]
         for block in range(blocks_to_render):
             if block==10:synth.call(0x800d0669,voice,0)
@@ -448,3 +463,8 @@ if len(sys.argv)>1:
     assert any(smooth[640:1280])
     assert max(i for i,x in enumerate(smooth) if x)<max(i for i,x in enumerate(dry) if x)
     print('Preset release retains its audible decay and reaches silence sooner')
+
+    soft=render_release(image,0,genie_velocity=32)
+    strong=render_release(image,0,genie_velocity=100)
+    assert 0<max(map(abs,soft[:640]))<max(map(abs,strong[:640]))/2
+    print('Verified actual Sound Generator output responds to Genie velocity')

@@ -82,7 +82,7 @@ void genie_setup(uint8_t *p,unsigned intro,unsigned row,unsigned bpm,unsigned hi
         return;
     }
     for(unsigned i=0;i<1024;i++)p[i]=0;
-    static const char *const names[] __attribute__((section(".screen_strings")))={"PHRASE","SCALE","ROOT","HITS","TEMPO","LENGTH","ROTATE","VELOCITY MIN","VELOCITY MAX","GATE PCT","NOTES","RHYTHM","OCTAVES"};
+    static const char *const names[] __attribute__((section(".screen_strings")))={"PHRASE","SCALE","ROOT","HITS","TEMPO","LENGTH","ROTATE","VELOCITY MIN","VELOCITY MAX","GATE PCT","NOTES","RHYTHM","OCTAVES","RANDOM VEL"};
     static const char *const keys[]={"C","DB","D","EB","E","F","GB","G","AB","A","BB","B"};
     static const char modes[][10] __attribute__((section(".screen_strings")))={
 #define SCALE(name, mask) name,
@@ -92,13 +92,14 @@ void genie_setup(uint8_t *p,unsigned intro,unsigned row,unsigned bpm,unsigned hi
     label(p,2,1,"SEQUENCE GENIE",1); label(p,99,1,playing&8?"QUEUED":editing?"EDIT":loop_names[(playing>>1)&3],1);
     rect(p,0,8,128,1);
     for(unsigned i=0;i<5;i++){
-        unsigned item=(row/5)*5+i;if(item>=13)break;
+        unsigned item=(row/5)*5+i;if(item>=14)break;
         int y=11+(int)i*8;label(p,9,y,names[item],1);
         switch(item){
         case 0:label(p,60,y,"NEW / MUTATE",1);break;
         case 1:label(p,60,y,modes[scale],1);break;
         case 2:label(p,60,y,keys[root%12],1);break;
         case 3:number(p,60,y,hits);break;
+        case 13:label(p,60,y,extra[6]?"OFF":"ON",1);break;
         case 12:number(p,60,y,extra[5]);break;
         case 4:number(p,60,y,bpm);break;
         default:if(item<10)number(p,60,y,extra[item-5]);else label(p,60,y,"REGENERATE",1);break;

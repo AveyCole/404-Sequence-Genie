@@ -45,11 +45,12 @@
 <dt>Tempo</dt><dd>Set 40–240 BPM. The grid uses straight sixteenths.</dd>
 <dt>Length</dt><dd>Choose 16–128 steps in 16-step increments.</dd>
 <dt>Rotate</dt><dd>Shift the rhythm around the phrase by one step per turn, wrapping at the current length.</dd>
-<dt>Velocity Min / Max</dt><dd>Set the allowed MIDI velocity range from 1 to 127. Minimum and maximum stay in order.</dd>
-<dt>Gate Pct</dt><dd>Set how long each note is held, from 10% to 95% of a step in five-point increments.</dd>
+<dt>Velocity Min / Max</dt><dd>Set the allowed note velocity range from 1 to 127 when Random Vel is on. Minimum and maximum stay in order.</dd>
+<dt>Gate Pct</dt><dd>Set the time before note-off as a percentage of one step, from 10% to 95%. At 120 BPM a sixteenth lasts 125 ms, so 75% holds it for about 94 ms before the synth’s release begins.</dd>
 <dt>Notes</dt><dd>Reroll pitches while keeping hit positions and velocities.</dd>
 <dt>Rhythm</dt><dd>Pick a new rotation for the same hit count while keeping the pitches and velocities assigned to the steps.</dd>
 <dt>Octaves</dt><dd>Use 1–4 octaves above the root. Notes above the Sound Generator’s playable range fold down by octaves.</dd>
+<dt>Random Vel</dt><dd>Turn on to vary each note’s velocity within the min and max. Turn off for a fixed velocity of 100.</dd>
 </dl>
 <p class="control-note">Editing a value, rerolling, or using Undo stops playback. Use Pad 12 for a phrase change at the next loop boundary.</p>
 </div>

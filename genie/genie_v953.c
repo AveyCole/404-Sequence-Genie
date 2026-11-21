@@ -30,7 +30,7 @@ static struct {
     void *footer;
     void *host_page;
     uintptr_t footer_type;
-    unsigned return_hint,capturing,painting,exit_down,clean_exit,octaves,length,rotation,lowvel,hivel,gate,view,roll,editing,knobdown,row,bpm,hits,root,scale,held;
+    unsigned fixed_velocity,return_hint,capturing,painting,exit_down,clean_exit,octaves,length,rotation,lowvel,hivel,gate,view,roll,editing,knobdown,row,bpm,hits,root,scale,held;
     volatile unsigned queued,loop,next,playing,visible;
     unsigned reverse,skip_edge;
     volatile int head;
@@ -38,18 +38,18 @@ static struct {
 } g;
 typedef struct {
     sp_sequence seq;
-    unsigned octaves,seed,length,rotation,lowvel,hivel,gate,bpm,hits,root,scale;
+    unsigned fixed_velocity,octaves,seed,length,rotation,lowvel,hivel,gate,bpm,hits,root,scale;
 } phrase_snapshot;
 static phrase_snapshot previous __attribute__((section(".undo")));
 static void remember(void){
-    previous.octaves=g.octaves;previous.seq=g.seq;previous.seed=g.seed;previous.length=g.length;
+    previous.fixed_velocity=g.fixed_velocity;previous.octaves=g.octaves;previous.seq=g.seq;previous.seed=g.seed;previous.length=g.length;
     previous.rotation=g.rotation;previous.lowvel=g.lowvel;previous.hivel=g.hivel;
     previous.gate=g.gate;previous.bpm=g.bpm;previous.hits=g.hits;
     previous.root=g.root;previous.scale=g.scale;
 }
 static void undo(void){
     if(!previous.length)return;
-    g.octaves=previous.octaves;g.seq=previous.seq;g.seed=previous.seed;g.length=previous.length;
+    g.fixed_velocity=previous.fixed_velocity;g.octaves=previous.octaves;g.seq=previous.seq;g.seed=previous.seed;g.length=previous.length;
     g.rotation=previous.rotation;g.lowvel=previous.lowvel;g.hivel=previous.hivel;
     g.gate=previous.gate;g.bpm=previous.bpm;g.hits=previous.hits;
     g.root=previous.root;g.scale=previous.scale;g.view=0;previous.length=0;
@@ -66,7 +66,9 @@ static void stop(void) {
     g.queued=0;g.head=-1;
 }
 static void generate(void) {
-    sp_seq_generate(&g.seq,0,g.length,g.hits,g.rotation,g.root,g.octaves,scales[g.scale],g.lowvel,g.hivel,g.seed);
+    unsigned low=g.fixed_velocity?100:g.lowvel;
+    unsigned high=g.fixed_velocity?100:g.hivel;
+    sp_seq_generate(&g.seq,0,g.length,g.hits,g.rotation,g.root,g.octaves,scales[g.scale],low,high,g.seed);
 }
 static void redraw(void) {
     if(g.footer && SG_PAGE && *(uintptr_t *)g.footer==g.footer_type) INVALIDATE(g.footer);
@@ -91,8 +93,8 @@ __attribute__((section(".controls"))) int genie_press(void *page,int pad,int vel
     g.consumed|=1u<<pad;
     if(genie_bounce_active())return 0;
     switch(pad){
-    case 0:g.row=(g.row+12)%13;break;
-    case 1:g.row=(g.row+1)%13;break;
+    case 0:g.row=(g.row+13)%14;break;
+    case 1:g.row=(g.row+1)%14;break;
     case 2:case 3:{
         int delta=pad==2?-1:1;remember();
         stop();
@@ -131,6 +133,7 @@ __attribute__((section(".controls"))) int genie_press(void *page,int pad,int vel
             break;
         case 12:if((delta<0 && g.octaves>1)||(delta>0 && g.octaves<4))g.octaves+=delta;
             generate();break;
+        case 13:g.fixed_velocity=delta<0;generate();break;
         }
         break;
     }
@@ -283,7 +286,7 @@ void genie_audio_tick(int frames){
 __attribute__((section(".clock"))) void genie_column(void *widget){
     if(!g.visible || !SG_PAGE)((page_handler)0x83fe7595u)(widget);
 }
-__attribute__((section(".controls"))) void genie_status_tile(void *widget){
+__attribute__((section(".clock"))) void genie_status_tile(void *widget){
     if(!g.visible || !SG_PAGE)((page_handler)0x80140291u)(widget);
 }
 __attribute__((section(".roll"))) void genie_parameter_background(void *widget){
@@ -351,7 +354,7 @@ void genie_footer(void *widget){
     if(!fb)return;
     uint32_t age=FRAMES-g.opened;
     if(g.roll && age>=48000)genie_roll(g.pixels,&g.seq,g.root,g.octaves,g.head,g.head>=0?(unsigned)g.head/16:g.view,g.loop);
-    else {unsigned extra[]={g.length,g.rotation,g.lowvel,g.hivel,g.gate,g.octaves};genie_setup(g.pixels,age<48000,g.row,g.bpm,g.hits,g.scale,g.root,g.playing|(g.loop<<1)|(g.queued<<3),g.editing,extra);}
+    else {unsigned extra[]={g.length,g.rotation,g.lowvel,g.hivel,g.gate,g.octaves,g.fixed_velocity};genie_setup(g.pixels,age<48000,g.row,g.bpm,g.hits,g.scale,g.root,g.playing|(g.loop<<1)|(g.queued<<3),g.editing,extra);}
     g.painting=1;
     int box[4]={0,0,127,63};
     COLOR(fb,0xffffff,0);FILL(fb,box);
