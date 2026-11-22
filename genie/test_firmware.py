@@ -1,4 +1,5 @@
 from pathlib import Path
+import argparse
 import sys
 sys.path.insert(0,str(Path(__file__).resolve().parent.parent/'synth'))
 from test_sg_subpad import Machine,KEY_SHIFT,SUB_PAD
@@ -6,8 +7,11 @@ from unicorn import UC_HOOK_CODE
 from unicorn import arm_const as ar
 from build_genie import ROOT, COPY, scatter, SLOTS
 import struct
-p=ROOT/'build/SP404MKII_APP1.bin'
-image = p.read_bytes()
+parser = argparse.ArgumentParser()
+parser.add_argument('reference', type=Path, nargs='?', help='SP-ETC v9.53 APP1 for audio comparisons')
+parser.add_argument('--image', type=Path, default=ROOT / 'build/SP404MKII_APP1.bin')
+args = parser.parse_args()
+image = args.image.read_bytes()
 slots = {start for start, _ in SLOTS.values()}
 for src, dest, size, kind in scatter(image):
     if dest in slots:
@@ -293,8 +297,8 @@ def shifted_ctrl_writes(firmware):
         machine.call(poll,page)
     return writes
 
-if len(sys.argv)>1:
-    original=shifted_ctrl_writes(Path(sys.argv[1]).read_bytes())
+if args.reference is not None:
+    original=shifted_ctrl_writes(args.reference.read_bytes())
     actual=shifted_ctrl_writes(image)
     assert actual==original,(actual,original)
     print('SHIFT + CTRL routing matches the unmodified v9.53 image:',actual)
@@ -419,7 +423,7 @@ for mode,expected in enumerate(((1,0,0),(0,1,0),(0,1,0),(0,1,0))):
     assert pad_test.call(0x800dc6b9,0x82e2cd08,0x6f,0)==13700
 print('Verified stock pad GATE, LOOP, PLAY and Original BPM for all four bounce modes')
 
-if len(sys.argv)>1:
+if args.reference is not None:
     def render_release(firmware, kind, env=0, blocks_to_render=22, genie_velocity=None):
         synth=Machine(firmware)
         voice,bus=0x80249800,0x3008a000
@@ -443,7 +447,7 @@ if len(sys.argv)>1:
             blocks.extend(struct.unpack('<896i',synth.uc.mem_read(bus,64*14*4))[::14])
         return blocks
 
-    source=Path(sys.argv[1]).read_bytes()
+    source = args.reference.read_bytes()
     assert render_release(source,0)==render_release(image,0)
     for kind in range(15,32):
         dry=render_release(source,kind)
