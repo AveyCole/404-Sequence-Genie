@@ -5,6 +5,7 @@ from pathlib import Path
 import struct
 
 from build_doom074 import FILTER_SLOTS, PADCONF_LOAD
+from build_arp import assemble, load
 from test_sg_subpad import EVENT, Machine, STACK
 from unicorn import UC_HOOK_CODE, arm_const as arm
 
@@ -56,7 +57,36 @@ def test_shared_hooks(image):
     print("Both SP-ETC page filters and the PADCONF loader hand off to 651C")
 
 
+def test_audio_chain(image):
+    machine = Machine(image)
+    render_entry = 0x1C758
+    mixer_copy = 0x32800000
+    machine.w32(0x80202728, mixer_copy)
+    machine.uc.hook_add(UC_HOOK_CODE, lambda uc, *_: machine._ret(0x32801000),
+                        begin=0x60336168, end=0x60336168)
+    # Model only the interrupt-mask instructions in the M-profile installer.
+    for address, instruction in ((0x6031961E, b"\x72\xb6"), (0x603196AE, b"\x62\xb6")):
+        assert bytes(machine.uc.mem_read(address, 2)) == instruction
+        machine.uc.mem_write(address, b"\x00\xbf")
+    assert machine.call(0x603195D1) == 1
+    expected = bytes.fromhex("2846") + assemble(load("r12", mixer_copy + 0x1C9) + "blx r12\nnop\nnop\nnop", render_entry + 2)
+    assert bytes(machine.uc.mem_read(render_entry, len(expected))) == expected
+
+    # The native mixer's displaced call must enter the SP-ETC render bridge.
+    calls = []
+    def render(uc, *_):
+        calls.append(tuple(uc.reg_read(reg) for reg in (
+            arm.UC_ARM_REG_R0, arm.UC_ARM_REG_R1, arm.UC_ARM_REG_R2, arm.UC_ARM_REG_R3)))
+        machine._ret()
+    machine.uc.hook_add(UC_HOOK_CODE, render, begin=0x1FD80, end=0x1FD80)
+    machine.call(0x6033E38D, 0x80249800, 0x30088000, 64, 14)
+    assert calls == [(0x80249800, 0x30088000, 64, 14)]
+    print("651C first-entry installer accepts the SP-ETC render hook and chains back through it")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("image", type=Path)
-    test_shared_hooks(parser.parse_args().image.read_bytes())
+    image = parser.parse_args().image.read_bytes()
+    test_shared_hooks(image)
+    test_audio_chain(image)

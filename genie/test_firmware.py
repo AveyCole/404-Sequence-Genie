@@ -10,6 +10,7 @@ import struct
 parser = argparse.ArgumentParser()
 parser.add_argument('reference', type=Path, nargs='?', help='SP-ETC v9.53 APP1 for audio comparisons')
 parser.add_argument('--image', type=Path, default=ROOT / 'build/SP404MKII_APP1.bin')
+parser.add_argument('--elf', type=Path, default=ROOT / 'build/genie.elf')
 args = parser.parse_args()
 image = args.image.read_bytes()
 slots = {start for start, _ in SLOTS.values()}
@@ -304,7 +305,7 @@ if args.reference is not None:
     print('SHIFT + CTRL routing matches the unmodified v9.53 image:',actual)
 
 # Run the patched upstream feed tail with a known stereo packet.
-with (ROOT/'build/genie.elf').open('rb') as fp:
+with args.elf.open('rb') as fp:
     from elftools.elf.elffile import ELFFile
     capture_state=ELFFile(fp).get_section_by_name('.capture_state')['sh_addr']
 m.w32(capture_state,3)
@@ -333,7 +334,7 @@ print('Bounce observes audio without applying any sample fade')
 
 # Start playback on a render boundary after RX capture starts. The saved
 # window skips capture lead and effects latency only.
-with (ROOT/'build/genie.elf').open('rb') as fp:
+with args.elf.open('rb') as fp:
     capture_clock=ELFFile(fp).get_section_by_name('.symtab').get_symbol_by_name('genie_bounce_clock')[0]['st_value']
 m.w32(capture_state,2)
 m.w32(capture_state+28,0)
@@ -351,7 +352,7 @@ assert m.call(capture_clock)==3
 
 # Stock finalization can move START and leave extra recorder frames at END.
 # Exercise the exact range rewrite with a stereo file whose data begins at frame 16.
-with (ROOT/'build/genie.elf').open('rb') as fp:
+with args.elf.open('rb') as fp:
     trim=ELFFile(fp).get_section_by_name('.symtab').get_symbol_by_name('set_loop_range')[0]['st_value']
 m.w32(capture_state+28,window+1024+16)
 m.w32(0x82e0e970,0x3008c000)
@@ -409,7 +410,7 @@ assert all(y!=7 for _,y,_,_ in picture()[1:]),'bounce started a second cycle'
 print('Pad 11 captures a complete ping-pong note cycle at the original tempo')
 
 # Exercise mode inheritance through the real stock pad setter and getter.
-with (ROOT/'build/genie.elf').open('rb') as fp:
+with args.elf.open('rb') as fp:
     pad_playback=ELFFile(fp).get_section_by_name('.symtab').get_symbol_by_name('set_pad_playback')[0]['st_value']
 pad_test=Machine(image)
 for address,result in ((0x8001aa78,0),(0x800d9e30,1)):
@@ -436,7 +437,7 @@ if args.reference is not None:
         if genie_velocity is None:
             synth.call(0x800d0669,voice,1)
         else:
-            with (ROOT/'build/genie.elf').open('rb') as fp:
+            with args.elf.open('rb') as fp:
                 start_voice=ELFFile(fp).get_section_by_name('.symtab').get_symbol_by_name('start_voice')[0]['st_value']
             synth.call(start_voice,60,genie_velocity)
         blocks=[]

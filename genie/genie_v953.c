@@ -22,6 +22,11 @@ extern unsigned genie_bounce_active(void);
 extern void genie_bounce_start(unsigned,unsigned,unsigned,unsigned);
 extern void genie_bounce_poll(unsigned,unsigned,unsigned);
 extern unsigned genie_bounce_clock(void);
+#ifdef GENIE_DOOM_074
+extern unsigned genie_doom_start(unsigned, unsigned);
+extern void genie_doom_release(void);
+extern void genie_doom_select(int);
+#endif
 static struct {
     sp_sequence seq;
     uint8_t pixels[1024];
@@ -78,20 +83,33 @@ static void clear_page(void) {
     g.clean_exit=g.footer!=0;
     g.return_hint=SG_PAGE;
 }
+#ifdef GENIE_DOOM_074
+__attribute__((section(".doom_open"), noinline))
+#endif
+static void toggle_genie(void) {
+    if(g.visible) clear_page();
+    else {
+        if(!g.octaves){g.octaves=1;g.scale=2;g.length=16;g.lowvel=72;g.hivel=112;g.gate=75;g.seed=404;g.bpm=120;g.root=60;g.hits=5;}
+        g.clean_exit=0;g.roll=g.editing=0;g.visible=1;g.opened=FRAMES;g.drawn=-100;g.head=-1;
+        generate();redraw();
+    }
+}
 __attribute__((section(".controls"))) int genie_press(void *page,int pad,int vel) {
     if(pad==0x13 && SHIFT) {
         if(genie_bounce_active()){genie_bounce_poll(FRAMES,1,0);g.held=1;return 0;}
-        if(g.visible) clear_page();
-        else {
-            if(!g.octaves){g.octaves=1;g.scale=2;g.length=16;g.lowvel=72;g.hivel=112;g.gate=75;g.seed=404;g.bpm=120;g.root=60;g.hits=5;}
-            g.clean_exit=0;g.roll=g.editing=0;g.visible=1;g.opened=FRAMES;g.drawn=-100;g.head=-1;
-            generate();redraw();
-        }
+        toggle_genie();
         g.held=1;return 0;
     }
     if(!g.visible || (unsigned)pad>=16) return OLD_PRESS(page,pad,vel);
     g.consumed|=1u<<pad;
     if(genie_bounce_active())return 0;
+#ifdef GENIE_DOOM_074
+    if (SHIFT && (pad == 14 || pad == 15)) {
+        stop();
+        genie_doom_select(pad == 14 ? -1 : 1);
+        return 0;
+    }
+#endif
     switch(pad){
     case 0:g.row=(g.row+13)%14;break;
     case 1:g.row=(g.row+1)%14;break;
@@ -213,6 +231,9 @@ static volatile uint8_t *voice_at(unsigned slot){
 }
 __attribute__((section(".voice"),noinline))
 static void release_voice(void){
+#ifdef GENIE_DOOM_074
+    genie_doom_release();
+#endif
     if(!active_voice)return;
     volatile uint8_t *v=voice_at(active_voice-1);
     if(v[0] && !v[1] && v[0x194]==0xff && VOICE_WORD(v,0x1ac)==UINT32_MAX)
@@ -221,6 +242,9 @@ static void release_voice(void){
 }
 __attribute__((section(".voice"),noinline))
 static void start_voice(unsigned note,unsigned velocity){
+#ifdef GENIE_DOOM_074
+    if (genie_doom_start(note, velocity)) return;
+#endif
     if(note>108)note-=24;
     else if(note>96)note-=12;
     for(unsigned slot=0;slot<4;++slot){

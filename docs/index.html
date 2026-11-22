@@ -18,7 +18,7 @@ select{font:inherit;color:inherit;background:#161522;border:1px solid #7564a5;bo
 <section class="panel" id="builder">
 <h2>Firmware builder</h2>
 <div>
-<p>Select an original <strong>Roland 5.52 APP1</strong> to build <strong>DOOM OS 0.7.4 (651C), SP-ETC v9.53, and Sequence Genie</strong> together. DOOM OS entry and instrument loading have been tested on a physical SP-404MKII. The builder verifies checksums locally in your browser.</p>
+<p>Select an original <strong>Roland 5.52 APP1</strong> to build <strong>DOOM OS 0.7.4 (651C), SP-ETC v9.53, and Sequence Genie</strong> together. The instrument picker preview and instrument pad playback have been tested on a physical SP-404MKII. The builder verifies checksums locally in your browser.</p>
 <form id="form">
 <label for="version">Firmware version</label>
 <select id="version"><option value="074">DOOM OS 0.7.4 (651C)</option><option value="legacy">Legacy DOOM OS 0.6.1 (ED5E)</option></select>
@@ -45,6 +45,7 @@ select{font:inherit;color:inherit;background:#161522;border:1px solid #7564a5;bo
 <dt>Pad 14</dt><dd>Cycle ONCE, LOOP, REV, and PING. LOOP repeats forward. REV repeats backward. PING alternates direction and plays each turnaround step once. While playing, a new mode takes effect at the next boundary.</dd>
 <dt>Pad 15</dt><dd>Switch between setup and piano roll. The roll shows one bar at a time and follows the playhead during playback.</dd>
 <dt>Pad 16</dt><dd>Start or stop playback.</dd>
+<dt>SHIFT + Pad 15 / 16</dt><dd>On the 0.7.4 build, select the previous or next DOOM OS instrument pad in the current project. The popup names the source. Cycle back to Sound Generator to use its voice. Set up the instrument pad in DOOM OS before opening Genie. Genie's native instrument note routing passed emulation.</dd>
 <dt>EXIT</dt><dd>Return directly to Sound Generator. During a bounce, EXIT cancels the take first. SHIFT + SUB PAD also closes Genie.</dd>
 </dl>
 </div>
@@ -75,5 +76,5 @@ select{font:inherit;color:inherit;background:#161522;border:1px solid #7564a5;bo
 </main><footer><div class="wrap">Based on <a href="https://github.com/tracelistener/SP-ETC">SP-ETC</a> by tracelistener. <a href="https://klangfeldlabs.com/doom-os/">DOOM OS</a> by Klangfeld Labs.</div></footer>
 <script src="./kits-data.js"></script>
 <script src="./doomos-patcher.js"></script>
-<script type="module" src="./builder.js?v=651c"></script>
+<script type="module" src="./builder.js?v=49e489fc"></script>
 </html>

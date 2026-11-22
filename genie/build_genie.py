@@ -1,6 +1,7 @@
 """Build the Sequence Genie hardware-test image against exact SP-ETC v9.53."""
 import argparse
 import hashlib
+import re
 import struct
 import subprocess
 import sys
@@ -16,17 +17,22 @@ from elftools.elf.elffile import ELFFile
 
 PARENT = 'faeea5b004273f2dbcfca00387cfcc59078d3ba42fd832d52d363209d8b3b75e'
 SLOTS = {".capture_range": (0x83fe6aa0,0x83fe6c00), ".capture_sync": (0x83fe4700,0x83fe4800), ".release_state": (0x83fd3cc0,0x83fd4000), ".clock": (0x83fe1c84,0x83fe2000), ".voice": (0x83fece70,0x83fed000), ".clock_state": (0x83fdb420,0x83fdb440), '.capture': (0x83fe5d88,0x83fe6000), '.capture_poll': (0x83feee68,0x83fef000), '.capture_state': (0x83fef0b8,0x83fef100), '.undo': (0x83fa1bc0,0x83fa2000), '.controls': (0x83fa09c0,0x83fa1000), '.text': (0x83fc8480, 0x83fc9000), '.display': (0x83fdd7c0, 0x83fde000), '.roll': (0x83fd6a80,0x83fd7000), '.state': (0x83fd87c0, 0x83fd9000)}
+DOOM_SLOTS = {".doom_track": (0x83fd3df8, 0x83fd4000),
+              ".doom_source": (0x83fa1e80, 0x83fa2000),
+              ".doom_data": (0x83fd8de0, 0x83fd8e20),
+              ".doom_open": (0x83fd8e20, 0x83fd9000)}
 HOOKS = [(0x80225790, 0x80140291, "genie_status_tile"), (0x8022209c, 0x801239e9, "genie_parameter_background"), (0x8022bbd4, 0x83fe7595, "genie_column"), (0x802296a4, 0x83fd4001, 'genie_press'), (0x802296a8, 0x83fd4079, 'genie_release'),
          (0x80229678, 0x83fe76e3, 'genie_poll'), (0x802256fc, 0x83fe7669, 'genie_footer'), (0x80229688,0x8015c531,'genie_encoder'), (0x80229680,0x8015c551,'genie_key'), (0x80229684,0x8015bf79,'genie_keyup')]
 
-def build(input_path, dest, zig):
+def build(input_path, dest, zig, doom_instruments=False):
     parent = input_path.read_bytes()
     if hashlib.sha256(parent).hexdigest() != PARENT:
         raise ValueError('Expected the published v9.53 APP1')
     tmp = ROOT / 'build'
     tmp.mkdir(parents=True, exist_ok=True)
-    ld = tmp / 'genie.ld'
-    ld.write_text("""ENTRY(genie_press)
+    suffix = "-doom074" if doom_instruments else ""
+    ld = tmp / f"genie{suffix}.ld"
+    layout = """ENTRY(genie_press)
 SECTIONS {
  .release_state 0x83fd3cc0 : { *(.release_state) }
  .capture_range 0x83fe6aa0 : { *(.capture_range) }
@@ -44,14 +50,33 @@ SECTIONS {
  .state 0x83fd87c0 : { *(.data*) *(.bss*) *(COMMON) }
  .roll 0x83fd6a80 : { KEEP(*(.roll)) }
  .display 0x83fdd7c0 : { *genie_screen*.o(.text* .rodata*) }
+ .doom_track 0x83fd3df8 : { KEEP(*(.doom_track)) }
+ .doom_source 0x83fa1e80 : { *(.doom_source) }
+ .doom_data 0x83fd8de0 : { *(.doom_data) }
+ .doom_open 0x83fd8e20 : { *(.doom_open) }
  /DISCARD/ : { *(.ARM.exidx*) *(.ARM.extab*) *(.comment) *(.note*) }
-}""")
-    elf = tmp / 'genie.elf'
+}"""
+    if doom_instruments:
+        # LLD needs the extra disjoint RAM sections in ascending order.
+        prefix, sections = layout.split('SECTIONS {\n', 1)
+        addresses, discard = sections.split(' /DISCARD/', 1)
+        entries = re.split(r'(?=^ \.[a-z_]+ 0x)', addresses, flags=re.M)
+        addresses = ''.join(sorted(filter(None, entries), key=lambda entry: int(entry.split()[1], 16)))
+        layout = prefix + 'SECTIONS {\n' + addresses + ' /DISCARD/' + discard
+        layout = layout.replace('*(.comment)', '*(.comment) *(.debug*)')
+    ld.write_text(layout)
+    slots = SLOTS | DOOM_SLOTS if doom_instruments else SLOTS
+    sources = ['genie_v953.c', 'genie_bounce.c', 'genie_release.c', 'sequence_perform.c', 'genie_screen.c']
+    flags = []
+    if doom_instruments:
+        sources.append('genie_doom074.c')
+        flags.extend(('-DGENIE_DOOM_074', '-g0'))
+    elf = tmp / f"genie{suffix}.elf"
     subprocess.run([zig, 'cc',
                     '-target', 'thumb-freestanding-eabihf', '-mcpu=cortex_m7+vfp4d16',
                     '-DGENIE_ON_DEVICE','-Os','-g','-fno-lto','-Wl,-e,genie_press','-Wl,-u,genie_release','-Wl,-u,genie_poll','-Wl,-u,genie_footer','-ffreestanding','-fno-builtin','-ffunction-sections','-fdata-sections',
                     '-nostdlib','-Wl,--gc-sections','-Wl,--no-undefined','-Wl,-T,'+ld.as_posix(),
-                    *[str(ROOT/x) for x in ('genie_v953.c','genie_bounce.c','genie_release.c','sequence_perform.c','genie_screen.c')],
+                    *flags, *[str(ROOT / source) for source in sources],
                     '-o',str(elf)],check=True)
     rows = list(scatter(parent))
     rt = Runtime(parent)
@@ -61,7 +86,7 @@ SECTIONS {
         obj = ELFFile(fp)
         for section in obj.iter_sections():
             if not(section['sh_flags'] & 2) or not section['sh_size']: continue
-            lo,hi = SLOTS[section.name]
+            lo,hi = slots[section.name]
             # The hardware scatter loader copies whole words and drops partial tails.
             data = section.data()
             data += bytes(-len(data) % 4)
@@ -144,5 +169,6 @@ if __name__ == '__main__':
     parser.add_argument('input', type=Path, help='Exact SP-ETC v9.53 APP1')
     parser.add_argument('--output', type=Path, default=ROOT / 'build/SP404MKII_APP1.bin')
     parser.add_argument('--zig', default='zig')
+    parser.add_argument('--doom-instruments', action='store_true', help='Intermediate overlay for the 651C merger')
     args = parser.parse_args()
-    build(args.input, args.output, args.zig)
+    build(args.input, args.output, args.zig, args.doom_instruments)

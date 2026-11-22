@@ -10,14 +10,14 @@ async function sha256(bytes) {
 }
 
 const stockHash = "4a3d67711e14dcc97d50249a4eee7dd6df0251a2f37757cbbe2556c233730d80";
-const combinedHash = "789d678a8735c87812db88bc45133764e66bfdf9819dc4898b971e3ff3e9c7f6";
+const combinedHash = "49e489fcf93530767f087e472328f85dd9dfca012b28ae3794b5b89158a21460";
 
 async function build074(source, inputHash) {
   if (inputHash !== stockHash) {
     throw new Error("The 0.7.4 build needs the original Roland 5.52 APP1.");
   }
   status.textContent = "Applying DOOM OS 0.7.4, SP-ETC v9.53, and Sequence Genie…";
-  const response = await fetch(new URL("./genie-doom074.patch", import.meta.url));
+  const response = await fetch(new URL("./genie-doom074.patch?v=49e489fc", import.meta.url));
   if (!response.ok) throw new Error("The 0.7.4 patch could not be loaded.");
   const container = new Uint8Array(await response.arrayBuffer());
   const {bytes, digest} = window.applyPatch(container, source);
