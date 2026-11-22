@@ -18,10 +18,14 @@ select{font:inherit;color:inherit;background:#161522;border:1px solid #7564a5;bo
 <section class="panel" id="builder">
 <h2>Firmware builder</h2>
 <div>
-<p>Select an original <strong>Roland 5.52 APP1</strong> to build <strong>DOOM OS 0.7.4 (651C), SP-ETC v9.53, and Sequence Genie</strong> together. The instrument picker preview and instrument pad playback have been tested on a physical SP-404MKII. The builder verifies checksums locally in your browser.</p>
+<p>Choose a firmware build and select an original <strong>Roland 5.52 APP1</strong>. Stock + Sequence Genie adds Genie to Roland’s Sound Generator. The DOOM OS builds also include SP-ETC v9.53. The builder verifies checksums locally in your browser.</p>
 <form id="form">
 <label for="version">Firmware version</label>
-<select id="version"><option value="074">DOOM OS 0.7.4 (651C)</option><option value="legacy">Legacy DOOM OS 0.6.1 (ED5E)</option></select>
+<select id="version">
+<option value="074">DOOM OS 0.7.4 (651C)</option>
+<option value="legacy">Legacy DOOM OS 0.6.1 (ED5E)</option>
+<option value="stock">Stock Roland 5.52 + Sequence Genie</option>
+</select>
 <label for="input">APP1 file</label>
 <input id="input" type="file" accept=".bin" required>
 <p>The legacy build also accepts an exact SP-ETC v9.53 APP1.</p>
@@ -71,10 +75,10 @@ select{font:inherit;color:inherit;background:#161522;border:1px solid #7564a5;bo
 <p class="control-note">Editing a value, rerolling, or using Undo stops playback. Use Pad 12 for a phrase change at the next loop boundary.</p>
 </div>
 </section>
-<section class="panel"><h2>Compatibility</h2><div><p>The 651C build combines DOOM OS 0.7.4 with SP-ETC v9.53 on Roland 5.52. The legacy ED5E build uses DOOM OS 0.6.1. Genie adds 19 REDUX scales, independent note and rhythm rerolls, and an eight-bar piano roll.</p><p>Keep the original Roland firmware pair and a project backup before testing. Use the downloaded APP1 with the original Roland 5.52 APP0.</p></div></section>
+<section class="panel"><h2>Compatibility</h2><div><p>The stock build uses Roland’s Sound Generator and adds Genie’s setup, piano roll, playback, and bounce. It has passed emulator tests and is awaiting a hardware check. The 651C build combines DOOM OS 0.7.4 with SP-ETC v9.53 on Roland 5.52. The legacy ED5E build uses DOOM OS 0.6.1. Genie adds 19 REDUX scales, independent note and rhythm rerolls, and an eight-bar piano roll.</p><p>Keep the original Roland firmware pair and a project backup before testing. Use the downloaded APP1 with the original Roland 5.52 APP0.</p></div></section>
 
 </main><footer><div class="wrap">Based on <a href="https://github.com/tracelistener/SP-ETC">SP-ETC</a> by tracelistener. <a href="https://klangfeldlabs.com/doom-os/">DOOM OS</a> by Klangfeld Labs.</div></footer>
 <script src="./kits-data.js"></script>
 <script src="./doomos-patcher.js"></script>
-<script type="module" src="./builder.js?v=49e489fc"></script>
+<script type="module" src="./builder.js?v=fcfb7315"></script>
 </html>

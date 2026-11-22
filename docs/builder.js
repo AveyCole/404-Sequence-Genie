@@ -25,6 +25,21 @@ async function build074(source, inputHash) {
   return bytes;
 }
 
+async function buildStock(parent, inputHash) {
+  if (inputHash !== stockHash) {
+    throw new Error("The stock + Sequence Genie build needs the original Roland 5.52 APP1.");
+  }
+  status.textContent = "Adding Sequence Genie to Roland 5.52…";
+  const response = await fetch(new URL("./genie-stock.json?v=fcfb7315", import.meta.url));
+  if (!response.ok) throw new Error("The stock Sequence Genie patch could not be loaded.");
+  const patch = await response.json();
+  if (patch.input !== stockHash ||
+      patch.output !== "fcfb731560121f95eb8ff2d3756796bcb878b9b2d3605d1949765e297b754ead") {
+    throw new Error("The stock Sequence Genie patch checksum did not match.");
+  }
+  return applyOverlay(parent, patch);
+}
+
 async function buildLegacy(parent, inputHash) {
   const response = await fetch(new URL("./genie-patch.json", import.meta.url));
   if (!response.ok) throw new Error("The legacy patch could not be loaded.");
@@ -38,6 +53,10 @@ async function buildLegacy(parent, inputHash) {
     parent = window.applyPatch(window.fromBase64(window.DOOMOS_KITS_PATCH), base.bytes).bytes;
     if (await sha256(parent) !== patch.input) throw new Error("SP-ETC checksum mismatch.");
   }
+  return applyOverlay(parent, patch);
+}
+
+async function applyOverlay(parent, patch) {
   const output = new Uint8Array(patch.size);
   output.set(parent);
   for (const [offset, hex] of patch.segments) {
@@ -48,24 +67,30 @@ async function buildLegacy(parent, inputHash) {
   return output;
 }
 
+const builds = {
+  "074": [build074, "DOOM OS 0.7.4"],
+  legacy: [buildLegacy, "legacy"],
+  stock: [buildStock, "Stock 5.52 + Sequence Genie"],
+};
+
 form.addEventListener("submit", async event => {
   event.preventDefault();
   const file = input.files[0];
   if (!file) return;
-  const legacy = version.value === "legacy";
+  const [build, label] = builds[version.value];
   button.disabled = true;
   status.textContent = "Checking firmware…";
   try {
     const source = new Uint8Array(await file.arrayBuffer());
     const inputHash = await sha256(source);
-    const output = await (legacy ? buildLegacy(source, inputHash) : build074(source, inputHash));
+    const output = await build(source, inputHash);
     const url = URL.createObjectURL(new Blob([output], {type:"application/octet-stream"}));
     const link = document.createElement("a");
     link.href = url;
     link.download = "SP404MKII_APP1.bin";
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 30000);
-    status.textContent = legacy ? "Verified legacy APP1 downloaded." : "Verified DOOM OS 0.7.4 APP1 downloaded.";
+    status.textContent = `Verified ${label} APP1 downloaded.`;
   } catch (error) {
     status.textContent = error.message;
   } finally {
