@@ -18,11 +18,11 @@ code{overflow-wrap:anywhere}@media print{body{background:#fff}main{max-width:non
 <main>
 <header><h1>404 Genie Manual</h1>
 <p>SP-404MKII · Current Roland 5.52-based flasher builds</p>
-<nav aria-label="Contents"><a href="./">Flasher</a><a href="#builds">Builds</a><a href="#start">Quick start</a><a href="#sequence">Sequence</a><a href="#chord">Chord</a><a href="#granule">Granule</a><a href="#drum">Drum</a><a href="#vox">Vox</a><a href="#check">Troubleshooting</a></nav>
+<nav aria-label="Contents"><a href="./">Flasher</a><a href="#builds">Builds</a><a href="#start">Quick start</a><a href="#sequence">Sequence</a><a href="#chord">Chord</a><a href="#grain">Grain</a><a href="#drum">Drum</a><a href="#vox">Vox</a><a href="#check">Troubleshooting</a></nav>
 </header>
 <section id="builds"><h2>Choose a build</h2>
 <table><thead><tr><th scope="col">Flasher option</th><th scope="col">What’s included</th></tr></thead><tbody>
-<tr><th scope="row">Stock Roland 5.52 + Genie Suite</th><td>Roland’s Sound Generator with Sequence, Chord, Granule, Drum, and Vox. Includes pitched sample playback, step editing, phrase slots, MIDI out, and batch bounce.</td></tr>
+<tr><th scope="row">Stock Roland 5.52 + Genie Suite</th><td>Roland’s Sound Generator with Sequence, Chord, Grain, Drum, and Vox. Includes pitched sample playback, step editing, phrase slots, MIDI out, and batch bounce.</td></tr>
 <tr><th scope="row">DOOM OS 0.7.4 (651C) + Genie Suite</th><td>All five Genie modes and workflow controls, plus SP-ETC v9.53 and DOOM OS 0.7.4. Sequence Genie can also play instruments loaded in DOOM OS.</td></tr>
 <tr><th scope="row">Legacy DOOM OS 0.6.1 (ED5E)</th><td>SP-ETC v9.53 and Sequence Genie with Setup, Piano Roll, and bounce. Use its Sound Generator as the source.</td></tr>
 </tbody></table>
@@ -33,10 +33,10 @@ code{overflow-wrap:anywhere}@media print{body{background:#fff}main{max-width:non
 <li>Back up your projects and keep a known-good firmware pair. Put the original Roland 5.52 <code>SP404MKII_APP0.bin</code> and the generated <code>SP404MKII_APP1.bin</code> at the root of the update SD card.</li>
 <li>Insert the card. Hold <kbd>SHIFT</kbd> while powering on, then press <kbd>VALUE</kbd> at the update screen. Wait for <strong>UPDATE COMPLETE!</strong>, then power off, remove the card, and restart. <a href="https://www.roland.com/global/support/by_product/sp-404mk2/updates_drivers/174cc2fc-ddb2-4128-87a0-848b882cdcea/">Roland 5.52 update instructions</a></li>
 <li>Press <kbd>SHIFT + RECORD SETTING</kbd> to open Sound Generator. Press <kbd>SHIFT + SUB PAD</kbd> to enter Sequence Genie. On Genie Suite builds the lamp animation plays on entry. Press any numbered pad or turn <kbd>VALUE</kbd> to skip it and use that control. Press <kbd>Pad 16</kbd> to audition. <a href="./#lamp-intro">Watch the intro</a>.</li>
-<li>On either Genie Suite build, press <kbd>Pad 15</kbd> through Setup → Piano Roll → Modes. On Modes, choose <kbd>Pad 1</kbd> for Chord, <kbd>Pad 2</kbd> for Granule, <kbd>Pad 3</kbd> for Drum, or <kbd>Pad 4</kbd> for Vox. On Legacy, Pad 15 switches between Setup and Piano Roll.</li>
+<li>On either Genie Suite build, press <kbd>Pad 15</kbd> through Setup → Piano Roll → Modes. On Modes, choose <kbd>Pad 1</kbd> for Chord, <kbd>Pad 2</kbd> for Grain, <kbd>Pad 3</kbd> for Drum, or <kbd>Pad 4</kbd> for Vox. On Legacy, Pad 15 switches between Setup and Piano Roll.</li>
 </ol>
-<p>Turn <kbd>VALUE</kbd> to browse rows. The highlighted label shows the selected row. Push to highlight and edit its value, turn to change it, and push again to browse. From Chord, <kbd>EXIT</kbd> returns to Modes. From Granule or Vox, <kbd>EXIT</kbd> returns to Sequence Genie. From Sequence Setup, <kbd>EXIT</kbd> returns to Sound Generator.</p>
-<p>While editing a number, hold <kbd>SHIFT</kbd> and turn <kbd>VALUE</kbd> for larger steps. Tempo, hits, rotation, velocity limits, gate, swing, strum, and Vox sensitivity move by 10 units. In Granule, grain size moves by 50 ms and the longer numeric ranges move by 10 units. Sample pad selection jumps by one bank. Menu choices and row navigation still move one at a time.</p>
+<p>Turn <kbd>VALUE</kbd> to browse rows. The highlighted label shows the selected row. Push to highlight and edit its value, turn to change it, and push again to browse. From Chord, <kbd>EXIT</kbd> returns to Modes. From Grain or Vox, <kbd>EXIT</kbd> returns to Sequence Genie. From Sequence Setup, <kbd>EXIT</kbd> returns to Sound Generator.</p>
+<p>While editing a number, hold <kbd>SHIFT</kbd> and turn <kbd>VALUE</kbd> for larger steps. Tempo, hits, rotation, velocity limits, gate, swing, strum, and Vox sensitivity move by 10 units. In Grain, grain size moves by 50 ms and the longer numeric ranges move by 10 units. Sample pad selection jumps by one bank. Menu choices and row navigation still move one at a time.</p>
 </section>
 <section id="sequence"><h2>Sequence Genie</h2>
 <table><thead><tr><th scope="col">Control</th><th scope="col">Action</th></tr></thead><tbody>
@@ -92,7 +92,7 @@ code{overflow-wrap:anywhere}@media print{body{background:#fff}main{max-width:non
 </ul>
 <p>Pad 16 auditions, Pad 11 bounces, and Pad 15 or EXIT returns to Modes.</p>
 </section>
-<section id="granule"><h2>Granule Genie</h2>
+<section id="grain"><h2 id="granule">Grain Genie</h2>
 <p>On Modes, press Pad 2. Select a Source pad with VALUE. Press Pad 16 to acquire and play. Position and Spray set the location and its random spread. Scan moves the location forward or backward, with zero holding it in place. Size is 10–500 ms, Density is 1–32 grains per second, and Pitch Spread spans 0–3 octaves. Reverse is the chance of a backwards grain. Shape selects Hann, Saw, Perc, or Square. Stereo sets the pan spread.</p>
 <p>Pad 6 adds a burst during playback. Pad 13 stops and restores the previous grain settings. Pad 15 toggles the grain scope. Pad 16 starts or stops. Pad 11 bounces one bar at the BPM set in Sequence Genie’s Tempo row after a source has loaded.</p>
 </section>
@@ -108,7 +108,7 @@ code{overflow-wrap:anywhere}@media print{body{background:#fff}main{max-width:non
 <tr><th scope="row">Pad 15</th><td>Toggle waveform and chop markers.</td></tr>
 <tr><th scope="row">Pad 16</th><td>Acquire and play, cancel acquisition, or stop playback.</td></tr>
 </tbody></table>
-<p>Vox captures up to eight seconds from the start of pad playback and downmixes it to mono. Capture ends earlier if the pad ends. Granule captures up to one second. The source can sound while loading. For a later vocal line, copy and trim that region to another pad first. Continuous audio may produce a single chop. Edits stop the current audition. Press Pad 16 to hear the new settings.</p>
+<p>Vox captures up to eight seconds from the start of pad playback and downmixes it to mono. Capture ends earlier if the pad ends. Grain Genie captures up to one second. The source can sound while loading. For a later vocal line, copy and trim that region to another pad first. Continuous audio may produce a single chop. Edits stop the current audition. Press Pad 16 to hear the new settings.</p>
 </section>
 <section id="check"><h2>Troubleshooting</h2>
 <ul>
