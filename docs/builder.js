@@ -17,7 +17,7 @@ async function sha256(bytes) {
 
 const stockHash = "4a3d67711e14dcc97d50249a4eee7dd6df0251a2f37757cbbe2556c233730d80";
 const etc953Hash = "faeea5b004273f2dbcfca00387cfcc59078d3ba42fd832d52d363209d8b3b75e";
-const combinedHash = "6f8b739ea67d2e1b0289e9efba00a943fc9638ab3a3a5e529f54fa4aa341cc07";
+const combinedHash = "312336524355eeb77550a3bd9408da106648c2f172cee8350bd7c3c7d7b6f7aa";
 const stockGenieHash = "377044332a2e13ef5fa5f6b9b5905d45941021105209644fa43a0d82da2f1153";
 const legacyHash = "b60e4cfba4c018b6719c3ade14c74ae35094d8ffa7c42408a2c8f41de6815ef5";
 
