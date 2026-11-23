@@ -36,6 +36,7 @@ code{overflow-wrap:anywhere}@media print{body{background:#fff}main{max-width:non
 <li>On either Genie Suite build, press <kbd>Pad 15</kbd> through Setup → Piano Roll → Modes. On Modes, choose <kbd>Pad 1</kbd> for Chord, <kbd>Pad 2</kbd> for Granule, or <kbd>Pad 4</kbd> for Vox. On Legacy, Pad 15 switches between Setup and Piano Roll.</li>
 </ol>
 <p>Turn <kbd>VALUE</kbd> to browse rows. The highlighted label shows the selected row. Push to highlight and edit its value, turn to change it, and push again to browse. From Chord, <kbd>EXIT</kbd> returns to Modes. From Granule or Vox, <kbd>EXIT</kbd> returns to Sequence Genie. From Sequence Setup, <kbd>EXIT</kbd> returns to Sound Generator.</p>
+<p>While editing a number, hold <kbd>SHIFT</kbd> and turn <kbd>VALUE</kbd> for larger steps. Tempo, hits, rotation, velocity limits, gate, swing, strum, and Vox sensitivity move by 10 units. In Granule, grain size moves by 50 ms and the longer numeric ranges move by 10 units. Sample pad selection jumps by one bank. Menu choices and row navigation still move one at a time.</p>
 </section>
 <section id="sequence"><h2>Sequence Genie</h2>
 <table><thead><tr><th scope="col">Control</th><th scope="col">Action</th></tr></thead><tbody>
@@ -46,7 +47,7 @@ code{overflow-wrap:anywhere}@media print{body{background:#fff}main{max-width:non
 <tr><th scope="row">Pad 13</th><td>Stop and undo the last edit or phrase change.</td></tr>
 <tr><th scope="row">Pad 14</th><td>Cycle ONCE, LOOP, REV, and PING.</td></tr>
 <tr><th scope="row">Pad 15 / 16</th><td>Pad 15 changes page. Pad 16 starts or stops playback.</td></tr>
-<tr><th scope="row">SHIFT + Pad 7</th><td>On either Genie Suite, open source selection. Choose <kbd>Pad 1</kbd> for Sound Generator or <kbd>Pad 3</kbd> for Sample. On the DOOM OS 0.7.4 build, <kbd>Pad 2</kbd> selects Instrument. Turn VALUE to browse pads and press EXIT to return. Changing away from a sample source stops its pad, including loops and samples with GATE off. Pitched samples transpose relative to C4 and fold by octaves into the unit’s pitch range.</td></tr>
+<tr><th scope="row">SHIFT + Pad 7</th><td>On either Genie Suite, open source selection. Choose <kbd>Pad 1</kbd> for Sound Generator or <kbd>Pad 3</kbd> for Sample. On the DOOM OS 0.7.4 build, <kbd>Pad 2</kbd> selects Instrument. Turn VALUE to browse pads and press EXIT to return. Genie stops its source pad when you switch sources, stop playback, or reach the end of a one-shot phrase. The pad’s saved LOOP and GATE settings stay intact. Pitched samples transpose relative to C4 and fold by octaves into the unit’s pitch range.</td></tr>
 <tr><th scope="row">SHIFT + Pad 8</th><td>On either Genie Suite, open the current project’s phrase slots. Pads 1–8 recall slots 1–8. Pads 9–14 save slots 1–6 and Pad 16 saves slot 8. Pad 15 is used for view navigation in this release, so slot 7 is recall-only. EXIT closes slots.</td></tr>
 <tr><th scope="row">SHIFT + Pads 15 / 16</th><td>On the DOOM OS 0.7.4 build, browse the previous or next loaded instrument. The list also includes the Sound Generator.</td></tr>
 <tr><th scope="row">Hold MFX + pad</th><td>Use pads to select an effect in the stock MFX picker.</td></tr>
