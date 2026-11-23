@@ -12,8 +12,8 @@ async function sha256(bytes) {
 
 const stockHash = "4a3d67711e14dcc97d50249a4eee7dd6df0251a2f37757cbbe2556c233730d80";
 const etc953Hash = "faeea5b004273f2dbcfca00387cfcc59078d3ba42fd832d52d363209d8b3b75e";
-const combinedHash = "b4a78e6316787a6f15cce2b770e51dabee94b6cbfa2a5ad0c3b9dd1d06e274d4";
-const stockGenieHash = "2683311cc202f9aa563293f83794d07049288a7590c1915646067865224df2b2";
+const combinedHash = "8fe81914e3c3ea9d3566e39d019691bff37434fddfed581b23e09cf0c5337654";
+const stockGenieHash = "28bca5bd9f575dbb05727a38af72999e0569dda2ea7b7abadd8fc9f17398f758";
 const legacyHash = "b60e4cfba4c018b6719c3ade14c74ae35094d8ffa7c42408a2c8f41de6815ef5";
 
 function patchURL(file, digest) {
@@ -73,7 +73,7 @@ const builds = {
     file: "genie-doom074.patch",
     hash: combinedHash,
     progress: "Applying DOOM OS 0.7.4, SP-ETC v9.53, and the Genie Suite…",
-    description: "Full DOOM OS 0.7.4 and SP-ETC v9.53 with Sequence, Chord, Granule, and eight-second Vox.",
+    description: "Full DOOM OS 0.7.4 and SP-ETC v9.53 with Sequence, Chord, Granule, Drum, and eight-second Vox.",
   },
   stock: {
     build: buildFromStock,
@@ -81,7 +81,7 @@ const builds = {
     file: "genie-stock.patch",
     hash: stockGenieHash,
     progress: "Adding the Genie Suite to stock Roland 5.52…",
-    description: "Sequence, Chord, Granule, and eight-second Vox on Roland’s stock Sound Generator.",
+    description: "Sequence, Chord, Granule, Drum, and eight-second Vox on Roland’s stock Sound Generator.",
   },
   legacy: {
     build: buildLegacy,
