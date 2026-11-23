@@ -17,8 +17,8 @@ async function sha256(bytes) {
 
 const stockHash = "4a3d67711e14dcc97d50249a4eee7dd6df0251a2f37757cbbe2556c233730d80";
 const etc953Hash = "faeea5b004273f2dbcfca00387cfcc59078d3ba42fd832d52d363209d8b3b75e";
-const combinedHash = "0df90af601311d09af15de12924f9dec782da55cdfc251a5348de6b25d3e5236";
-const stockGenieHash = "f187fd87d8ab95402c15bc71f1d64e34b46de6c55a7703e0a95876cbe546e08b";
+const combinedHash = "afcaa56a726feadd191f53218c1d2c8d78204bafa5bad42fb60760daaa6469d7";
+const stockGenieHash = "5e7fd2cbb17905ed4fcd52f961ba2d929f8be5423255fd087ac685f4c8f90c4c";
 const legacyHash = "b60e4cfba4c018b6719c3ade14c74ae35094d8ffa7c42408a2c8f41de6815ef5";
 
 function patchURL(file, digest) {
@@ -78,7 +78,7 @@ const builds = {
     file: "genie-doom074.patch",
     hash: combinedHash,
     progress: "Applying DOOM OS 0.7.4, SP-ETC v9.53, and the Genie Suite…",
-    description: "Full DOOM OS 0.7.4 and SP-ETC v9.53 with the six-mode Genie Suite, including Bounce and the redesigned Sequence Setup.",
+    description: "Full DOOM OS 0.7.4 and SP-ETC v9.53, plus the five-mode Genie Suite with dedicated Drum Genie.",
   },
   stock: {
     build: buildFromStock,
@@ -86,7 +86,7 @@ const builds = {
     file: "genie-stock.patch",
     hash: stockGenieHash,
     progress: "Adding the Genie Suite to stock Roland 5.52…",
-    description: "The six-mode Genie Suite on stock Roland 5.52, including Bounce and the redesigned Sequence Setup.",
+    description: "The five-mode Genie Suite with dedicated Drum Genie on Roland’s stock Sound Generator.",
   },
   legacy: {
     build: buildLegacy,

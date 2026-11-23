@@ -97,7 +97,7 @@ button:disabled { cursor: wait; opacity: .75; }
 .steps li::marker { color: var(--gold); font-weight: 700; }
 .steps p, .modes p, .guide-note, .support p { color: var(--muted); }
 .steps h3, .modes h3 { margin-bottom: .3rem; font-size: 1rem; }
-.modes { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.modes { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 .modes article { border: 1px solid var(--line); background: #21182c; border-radius: .45rem; padding: .85rem 1rem; }
 .guide-note { margin-top: .85rem; }
 .support { display: grid; grid-template-columns: minmax(8rem, 15rem) 1fr; gap: 1.35rem; align-items: center; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--gold); border-radius: .5rem; padding: 1rem; margin: 0 0 2.5rem; }
