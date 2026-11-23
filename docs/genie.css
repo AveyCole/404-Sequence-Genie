@@ -30,28 +30,34 @@ a:hover { color: #fff; }
 .nav-links a:hover, .nav-links [aria-current] { text-decoration: underline; }
 .brand { color: var(--ink); font-weight: 700; }
 .brand span { color: var(--gold); margin-right: .25rem; }
-.hero { display: grid; grid-template-columns: 1.12fr 1fr; gap: clamp(1.5rem, 6vw, 5.5rem); align-items: stretch; padding-block: clamp(2rem, 7vw, 5.75rem); }
-.intro { position: relative; isolation: isolate; min-width: 0; display: flex; flex-direction: column; }
-.intro-copy { position: relative; z-index: 1; }
+.hero {
+  display: grid;
+  grid-template-columns: 1.12fr 1fr;
+  grid-template-areas: "intro builder" "art builder";
+  grid-template-rows: auto 1fr;
+  gap: 1.15rem clamp(1.5rem, 6vw, 5.5rem);
+  padding-block: clamp(2rem, 7vw, 5.75rem);
+}
+.intro { grid-area: intro; min-width: 0; }
 .eyebrow { margin: 0 0 .6rem; color: var(--gold); font-weight: 700; font-size: .72rem; letter-spacing: .18em; }
 h1, h2, h3, p { margin: 0; }
 h1, h2 { font-family: Georgia, serif; font-weight: 500; }
 h1 { font-size: clamp(3.7rem, 8.4vw, 7.3rem); line-height: .87; letter-spacing: -.07em; }
 h1 em { color: var(--gold); font-weight: inherit; }
-.intro-copy > h1 + p { max-width: 28rem; margin-top: 1.3rem; color: var(--muted); font-size: 1.04rem; }
-.release-links { display: flex; flex-wrap: wrap; gap: .25rem 1rem; margin-top: .65rem; font-size: .9rem; font-weight: 650; }
-.release-links a { color: var(--gold); }
+.intro > h1 + p { max-width: 28rem; margin-top: 1.3rem; color: var(--muted); font-size: 1.04rem; }
+.release-link { display: inline-block; margin-top: .65rem; color: var(--gold); font-size: .9rem; font-weight: 650; }
 .hero-art {
-  flex: 1;
-  min-height: 15rem;
-  position: relative;
-  overflow: hidden;
-  margin-top: 1.15rem;
-  background: url("./genie-lamp.jpg") center 64% / cover no-repeat;
+  grid-area: art;
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
   border-radius: .65rem;
-  box-shadow: inset 0 0 0 1px #4e3a5d80;
+  background: #080808;
+  image-rendering: pixelated;
 }
 .builder {
+  grid-area: builder;
   align-self: center;
   background: linear-gradient(155deg, #261831, var(--panel) 60%);
   border: 1px solid var(--line);
@@ -83,7 +89,7 @@ button:disabled { cursor: wait; opacity: .75; }
 .oled-feature { display: grid; grid-template-columns: 1fr minmax(16rem, 24rem); gap: 1.25rem 2.5rem; align-items: center; }
 .drum-copy p { max-width: 37rem; margin-block: .6rem; color: var(--muted); }
 .drum-copy a { display: inline-block; margin-top: .25rem; font-size: .9rem; }
-.oled-feature img, .oled-feature video { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: .45rem; image-rendering: pixelated; }
+.oled-feature img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: .45rem; image-rendering: pixelated; }
 .section-title { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: .55rem 1.5rem; margin-bottom: 1.2rem; }
 .section-title a { font-size: .9rem; }
 .steps, .modes { display: grid; gap: .9rem; margin: 0; }
@@ -102,9 +108,7 @@ button:disabled { cursor: wait; opacity: .75; }
 .site-footer { border-top: 1px solid var(--line); color: var(--muted); padding-block: 1rem; font-size: .88rem; }
 .site-footer .wrap { justify-content: space-between; }
 @media (max-width: 52rem) {
-  .hero { grid-template-columns: 1fr; }
-  .intro { overflow: hidden; }
-  .hero-art { position: absolute; z-index: -1; inset: 0 0 0 auto; width: min(65%, 24rem); margin: 0; opacity: .48; mask-image: linear-gradient(90deg, transparent, #000 55%); box-shadow: none; }
+  .hero { grid-template-columns: 1fr; grid-template-areas: "intro" "builder" "art"; grid-template-rows: auto; }
   .modes { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 34rem) {
@@ -121,5 +125,4 @@ button:disabled { cursor: wait; opacity: .75; }
 }
 @media (max-width: 23rem) {
   .modes { grid-template-columns: 1fr; }
-  .hero-art { opacity: .25; }
 }

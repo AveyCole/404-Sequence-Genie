@@ -4,6 +4,11 @@ const version = document.querySelector("#version");
 const button = document.querySelector("#build");
 const status = document.querySelector("#result");
 const description = document.querySelector("#build-description");
+const heroAnimation = document.querySelector("#lamp-intro");
+
+if (heroAnimation && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  heroAnimation.play().catch(() => {});
+}
 
 async function sha256(bytes) {
   const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
