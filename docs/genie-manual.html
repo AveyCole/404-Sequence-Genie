@@ -17,15 +17,23 @@ code{overflow-wrap:anywhere}@media print{body{background:#fff}main{max-width:non
 </style>
 <main>
 <header><h1>404 Genie Manual</h1>
-<p>SP-404MKII · Roland 5.52 · Stock Genie Suite and DOOM OS 0.7.4 (651C) Genie Suite</p>
-<nav aria-label="Contents"><a href="#start">Quick start</a><a href="#sequence">Sequence</a><a href="#chord">Chord</a><a href="#granule">Granule</a><a href="#vox">Vox</a><a href="#check">Troubleshooting</a></nav>
+<p>SP-404MKII · Current Roland 5.52-based flasher builds</p>
+<nav aria-label="Contents"><a href="./">Flasher</a><a href="#builds">Builds</a><a href="#start">Quick start</a><a href="#sequence">Sequence</a><a href="#chord">Chord</a><a href="#granule">Granule</a><a href="#vox">Vox</a><a href="#check">Troubleshooting</a></nav>
 </header>
+<section id="builds"><h2>Choose a build</h2>
+<table><thead><tr><th scope="col">Flasher option</th><th scope="col">What’s included</th></tr></thead><tbody>
+<tr><th scope="row">Stock Roland 5.52 + Genie Suite</th><td>Roland’s Sound Generator with Sequence, Chord, Granule, and Vox. Includes pitched sample playback, drum lanes, step editing, phrase slots, MIDI out, and batch bounce.</td></tr>
+<tr><th scope="row">DOOM OS 0.7.4 (651C) + Genie Suite</th><td>All four Genie modes and workflow controls, plus SP-ETC v9.53 and DOOM OS 0.7.4. Sequence Genie can also play instruments loaded in DOOM OS.</td></tr>
+<tr><th scope="row">Legacy DOOM OS 0.6.1 (ED5E)</th><td>SP-ETC v9.53 and Sequence Genie with Setup, Piano Roll, and bounce. Use its Sound Generator as the source.</td></tr>
+</tbody></table>
+<p>Use an original Roland 5.52 APP1 in the builder. Legacy also accepts the exact SP-ETC v9.53 APP1. All three outputs use the original Roland 5.52 APP0 on the update card. <a href="./#builder">Open the flasher</a>.</p>
+</section>
 <section id="start"><h2>Quick start</h2>
 <ol>
-<li>Back up your projects and keep a known-good firmware pair. Put the supplied <code>SP404MKII_APP0.bin</code> and <code>SP404MKII_APP1.bin</code> at the root of the update SD card. Both builds use the original Roland 5.52 APP0. Choose the stock Genie Suite for Roland’s Sound Generator or the combined Genie Suite for SP-ETC and DOOM OS instruments.</li>
+<li>Back up your projects and keep a known-good firmware pair. Put the original Roland 5.52 <code>SP404MKII_APP0.bin</code> and the generated <code>SP404MKII_APP1.bin</code> at the root of the update SD card.</li>
 <li>Insert the card. Hold <kbd>SHIFT</kbd> while powering on, then press <kbd>VALUE</kbd> at the update screen. Wait for <strong>UPDATE COMPLETE!</strong>, then power off, remove the card, and restart. <a href="https://www.roland.com/global/support/by_product/sp-404mk2/updates_drivers/174cc2fc-ddb2-4128-87a0-848b882cdcea/">Roland 5.52 update instructions</a></li>
 <li>Press <kbd>SHIFT + RECORD SETTING</kbd> to open Sound Generator. Press <kbd>SHIFT + SUB PAD</kbd> to enter Sequence Genie. Press <kbd>Pad 16</kbd> to audition.</li>
-<li>Press <kbd>Pad 15</kbd> through Setup → Piano Roll → Modes. From Modes, choose <kbd>Pad 1</kbd> for Chord, <kbd>Pad 2</kbd> for Granule, or <kbd>Pad 4</kbd> for Vox.</li>
+<li>On either Genie Suite build, press <kbd>Pad 15</kbd> through Setup → Piano Roll → Modes. On Modes, choose <kbd>Pad 1</kbd> for Chord, <kbd>Pad 2</kbd> for Granule, or <kbd>Pad 4</kbd> for Vox. On Legacy, Pad 15 switches between Setup and Piano Roll.</li>
 </ol>
 <p>Turn <kbd>VALUE</kbd> to browse rows. The highlighted label shows the selected row. Push to highlight and edit its value, turn to change it, and push again to browse. From Chord, <kbd>EXIT</kbd> returns to Modes. From Granule or Vox, <kbd>EXIT</kbd> returns to Sequence Genie. From Sequence Setup, <kbd>EXIT</kbd> returns to Sound Generator.</p>
 </section>
@@ -38,30 +46,30 @@ code{overflow-wrap:anywhere}@media print{body{background:#fff}main{max-width:non
 <tr><th scope="row">Pad 13</th><td>Stop and undo the last edit or phrase change.</td></tr>
 <tr><th scope="row">Pad 14</th><td>Cycle ONCE, LOOP, REV, and PING.</td></tr>
 <tr><th scope="row">Pad 15 / 16</th><td>Pad 15 changes page. Pad 16 starts or stops playback.</td></tr>
-<tr><th scope="row">SHIFT + Pad 7</th><td>Open source selection. Pad 1 selects Sound Generator, Pad 2 selects DOOM OS Instrument, and Pad 3 selects Sample. Turn VALUE to browse the instrument or sample pads, and press EXIT to return. Changing away from a sample source stops its pad, including loops and samples with GATE off. Pitched samples transpose relative to C4, folding by octaves into the unit's available range.</td></tr>
-<tr><th scope="row">SHIFT + Pad 8</th><td>Open eight phrase slots for the current project. Pads 1–8 recall. Pads 9–16 save to slots 1–8. EXIT closes slots.</td></tr>
-<tr><th scope="row">SHIFT + Pads 15 / 16</th><td>Previous or next loaded DOOM OS instrument. The source list also includes the Sound Generator.</td></tr>
+<tr><th scope="row">SHIFT + Pad 7</th><td>On either Genie Suite, open source selection. Choose <kbd>Pad 1</kbd> for Sound Generator or <kbd>Pad 3</kbd> for Sample. On the DOOM OS 0.7.4 build, <kbd>Pad 2</kbd> selects Instrument. Turn VALUE to browse pads and press EXIT to return. Changing away from a sample source stops its pad, including loops and samples with GATE off. Pitched samples transpose relative to C4 and fold by octaves into the unit’s pitch range.</td></tr>
+<tr><th scope="row">SHIFT + Pad 8</th><td>On either Genie Suite, open the current project’s phrase slots. Pads 1–8 recall slots 1–8. Pads 9–14 save slots 1–6 and Pad 16 saves slot 8. Pad 15 is used for view navigation in this release, so slot 7 is recall-only. EXIT closes slots.</td></tr>
+<tr><th scope="row">SHIFT + Pads 15 / 16</th><td>On the DOOM OS 0.7.4 build, browse the previous or next loaded instrument. The list also includes the Sound Generator.</td></tr>
 <tr><th scope="row">Hold MFX + pad</th><td>Use pads to select an effect in the stock MFX picker.</td></tr>
-<tr><th scope="row">CTRL 1–3</th><td>Adjust the selected effect while Genie is open. Exit Genie to edit Sound Generator parameters with these knobs.</td></tr>
+<tr><th scope="row">CTRL 1–3</th><td>Adjust the selected effect while Genie is open. If the effect is bypassed, the knobs leave the Sound Generator settings untouched. Exit Genie to edit Sound Generator parameters with these knobs.</td></tr>
 </tbody></table>
 <h3>Setup</h3>
 <table><thead><tr><th scope="col">Row</th><th scope="col">Setting</th></tr></thead><tbody>
-<tr><th scope="row">Phrase, Notes, Rhythm</th><td>Opening Sequence Genie generates a fresh phrase with the current settings. Generate and Notes choose pitches from all notes in the selected scale and octave range. Notes keeps the current hit positions and velocities. Rhythm rerolls hit positions. Step locks protect edits from rerolls. Save a phrase to a slot to recall it later.</td></tr>
+<tr><th scope="row">Phrase, Notes, Rhythm</th><td>Opening Sequence Genie generates a fresh phrase with the current settings. Generate and Notes draw from all notes in the selected scale and octave range. Notes keeps the current hit positions and velocities. Rhythm rerolls hit positions. On the Suite builds, step locks protect edits and phrase slots let you recall a phrase later.</td></tr>
 <tr><th scope="row">Scale, Root, Octaves</th><td>Choose from 19 REDUX scales, set the root, and select a span of 1–4 octaves.</td></tr>
 <tr><th scope="row">Hits, Length, Rotate</th><td>Set the number of hits, the phrase length (16–128 steps in blocks of 16), and where the rhythm falls on the grid.</td></tr>
-<tr><th scope="row">Tempo, Swing, Grid</th><td>Tempo is 40–240 BPM. Swing is 50–75% on the straight grid, with 50% straight. Triplet uses straight sixteenth-note triplets.</td></tr>
+<tr><th scope="row">Tempo, Swing, Grid</th><td>Tempo is 40–240 BPM. Both Genie Suite builds add Swing (50–75%, with 50% straight) and Grid (straight sixteenths or sixteenth-note triplets).</td></tr>
 <tr><th scope="row">Velocity Min / Max, Random Vel</th><td>Set the generated velocity range and whether hits vary in strength. The sound source determines how it responds to velocity.</td></tr>
 <tr><th scope="row">Gate Pct</th><td>How much of the step or ratchet interval a note stays held, from 10% to 95%. A sample's own playback settings affect whether it responds to note-off.</td></tr>
-<tr><th scope="row">MIDI Out, Tempo Src</th><td>Send live note messages on channel 1–16 or turn output off. GENIE uses the internal tempo. SP BPM reads the 404's reported bank tempo at phrase boundaries. Incoming MIDI-clock phase lock is pending.</td></tr>
-<tr><th scope="row">Bounce Count</th><td>Record 1–8 takes. A batch needs consecutive empty, unprotected pads. The first take uses the current phrase. Later takes use mutations.</td></tr>
-<tr><th scope="row">Sample Pad, Drum Lane, Drum Pad, Drum Hits, Drum Rotate</th><td>Choose a melodic source pad or configure one of four sample-pad drum lanes. Set a lane's pad to OFF to disable it.</td></tr>
+<tr><th scope="row">MIDI Out, Tempo Src</th><td>Suite builds send live note messages on channel 1–16 or turn output off. GENIE uses the internal tempo. SP BPM reads the 404’s reported bank tempo and applies changes at phrase boundaries.</td></tr>
+<tr><th scope="row">Bounce Count</th><td>On Suite builds, record 1–8 takes. A batch needs consecutive empty, unprotected pads. The first take uses the current phrase. Later takes use mutations.</td></tr>
+<tr><th scope="row">Sample Pad, Drum Lane, Drum Pad, Drum Hits, Drum Rotate</th><td>On Suite builds, choose a melodic source pad or configure one of four sample-pad drum lanes. Set a lane’s pad to OFF to disable it.</td></tr>
 </tbody></table>
 <h3>Piano roll</h3>
-<p>Turn VALUE while stopped to browse pages. Push VALUE to enter step edit. Pads 1/2 choose Note, Chance, or Repeat. Pads 3/4 move the cursor. Turn VALUE to change the selected field. Pad 5 toggles hit or rest, and Pad 6 locks or unlocks the step. Chance runs from 0–100%. Repeat runs from 1–4 triggers. Push VALUE again to leave step edit.</p>
+<p>Turn VALUE while stopped to browse pages. On either Genie Suite build, push VALUE to enter step edit. Pads 1/2 choose Note, Chance, or Repeat. Pads 3/4 move the cursor. Turn VALUE to change the selected field. Pad 5 toggles hit or rest, and Pad 6 locks or unlocks the step. Chance runs from 0–100%. Repeat runs from 1–4 triggers. Push VALUE again to leave step edit. On Legacy, press Pad 15 to return to Setup for edits.</p>
 <h3>Bounce</h3>
 <p>Pad 11 captures one cycle from the first pass. ONCE saves with looping off. LOOP saves a forward loop. REV records reverse step order. PING records forward and back without doubling the turnaround steps. REV and PING save as regular forward-looping audio, with the change of direction already recorded. Looping bounces default to GATE off. The destination message names the pad, and its Original BPM uses the tempo at bounce launch.</p>
 <p>The bounce uses the 404's internal recorder. The destination is routed outside Bus 1/2 to avoid processing the recorded signal twice. If levels differ, check bus processing and compression when comparing the two. Press EXIT to cancel a bounce or any remaining batch takes.</p>
-<h3>Load a DOOM OS instrument first</h3>
+<h3>Load an instrument in DOOM OS 0.7.4</h3>
 <p>Hold <kbd>REMAIN</kbd> and press <kbd>SUB PAD</kbd> to open DOOM OS. On its step grid, hold SUB PAD, tap an empty pad, and release SUB PAD. Turn and press VALUE to pick the instrument. Return to Genie and select that instrument as its source. For DOOM OS controls, see the <a href="https://klangfeldlabs.com/doom-os/manual/">DOOM OS manual</a>.</p>
 </section>
 <section id="chord"><h2>Chord Genie</h2>
@@ -76,17 +84,17 @@ code{overflow-wrap:anywhere}@media print{body{background:#fff}main{max-width:non
 </section>
 <section id="granule"><h2>Granule Genie</h2>
 <p>On Modes, press Pad 2. Select a Source pad with VALUE. Press Pad 16 to acquire and play. Position and Spray set the location and its random spread. Scan moves the location forward or backward, with zero holding it in place. Size is 10–500 ms, Density is 1–32 grains per second, and Pitch Spread spans 0–3 octaves. Reverse is the chance of a backwards grain. Shape selects Hann, Saw, Perc, or Square. Stereo sets the pan spread.</p>
-<p>Pad 6 adds a burst during playback. Pad 13 stops and restores the previous grain settings. Pad 15 toggles the grain scope. Pad 16 starts or stops. Pad 11 bounces one bar at the Sequence Genie tempo after a source has loaded.</p>
+<p>Pad 6 adds a burst during playback. Pad 13 stops and restores the previous grain settings. Pad 15 toggles the grain scope. Pad 16 starts or stops. Pad 11 bounces one bar at the BPM set in Sequence Genie’s Tempo row after a source has loaded.</p>
 </section>
 <section id="vox"><h2>Vox Genie</h2>
-<p>On Modes, press Pad 4. Start with a short vocal sample with clear gaps between syllables. Select its pad under Source, then press Pad 16. Vox finds attacks in the captured audio and loops through the resulting chops.</p>
+<p>On Modes, press Pad 4. Start with a vocal sample with clear gaps between syllables. Select its pad under Source, then press Pad 16. Vox finds attacks in the captured audio and plays the resulting chops as a stream. Use the 404’s regular Chop mode to place exact markers and assign individual slices to pads.</p>
 <table><thead><tr><th scope="col">Control</th><th scope="col">Action</th></tr></thead><tbody>
 <tr><th scope="row">Source</th><td>Choose any pad from A1 to J16. Press Pad 16 to acquire the new source.</td></tr>
 <tr><th scope="row">Sensitivity</th><td>Raise it for quieter attacks or lower it if a phrase splits too often. Range 0–100, default 50.</td></tr>
 <tr><th scope="row">Order</th><td>Forward, Backward, or Random. This controls which chop plays next.</td></tr>
 <tr><th scope="row">Direction</th><td>Forward or Reverse. This controls how the audio inside each chop plays.</td></tr>
 <tr><th scope="row">Pad 6</th><td>Advance to the next chop in the selected order while playing.</td></tr>
-<tr><th scope="row">Pad 11</th><td>Bounce one bar to an empty pad at the Sequence Genie tempo. The bounced pad starts with LOOP off.</td></tr>
+<tr><th scope="row">Pad 11</th><td>Bounce one bar to an empty pad at the BPM set in Sequence Genie’s Tempo row. The bounced pad starts with LOOP off.</td></tr>
 <tr><th scope="row">Pad 15</th><td>Toggle waveform and chop markers.</td></tr>
 <tr><th scope="row">Pad 16</th><td>Acquire and play, cancel acquisition, or stop playback.</td></tr>
 </tbody></table>
@@ -94,7 +102,7 @@ code{overflow-wrap:anywhere}@media print{body{background:#fff}main{max-width:non
 </section>
 <section id="check"><h2>Troubleshooting</h2>
 <ul>
-<li>If Modes has no Vox entry, check that you installed a Genie Suite build. The earlier stock Sequence Genie build has Setup and Piano Roll only.</li>
+<li>If Pad 15 switches only between Setup and Piano Roll, check the firmware you built. Both current Genie Suite options include Modes. Legacy and the earlier Stock + Sequence Genie build have Setup and Piano Roll.</li>
 <li>If the source is unavailable, choose a populated pad and make sure it plays in normal Sample mode. For chopped vocals, try a clip with distinct transients.</li>
 <li>If bounce reports <b>REC BUSY / CHECK ROUTING</b>, stop other recording or resampling, then retry. For batch bounce, check for a contiguous run of free pads.</li>
 <li>If you hear a click or level jump when evaluating a bounce, check the compressor and compare with the same monitoring level.</li>
