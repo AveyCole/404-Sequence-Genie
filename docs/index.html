@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#140e20">
-  <meta name="description" content="Build the Genie Suite with dedicated Drum Genie for your Roland SP-404MKII.">
+  <meta name="description" content="Build the Genie Suite with Bounce for your Roland SP-404MKII.">
   <title>404 Sequence Genie · Firmware Builder</title>
-  <link rel="stylesheet" href="./genie.css?v=6">
+  <link rel="stylesheet" href="./genie.css?v=7">
 </head>
 <body>
 <a class="skip" href="#builder">Skip to firmware builder</a>
@@ -22,13 +22,12 @@
   </nav>
 </header>
 <main class="wrap">
-  <p class="guide-note" role="status">The flasher is serving the previous Genie Suite builds while a project-switch freeze in the Bounce release is investigated.</p>
   <div class="hero">
     <section class="intro" aria-labelledby="title">
       <p class="eyebrow">FOR THE ROLAND SP-404MKII</p>
       <h1 id="title">Sequence<br><em>Genie</em></h1>
       <p>Generate phrases, play them through your own sounds, and bounce straight to a pad.</p>
-      <a class="release-link" href="#drum-genie">Explore Drum Genie <span aria-hidden="true">↓</span></a>
+      <a class="release-link" href="#bounce-genie">Explore Bounce <span aria-hidden="true">↓</span></a>
     </section>
     <video id="lamp-intro" class="hero-art" muted playsinline preload="none" width="512" height="256" poster="./genie-lamp-intro-poster.png" aria-hidden="true">
       <source src="./genie-lamp-intro.mp4" type="video/mp4">
@@ -44,7 +43,7 @@
           <option value="stock">Stock Roland 5.52 + Genie Suite</option>
           <option value="legacy">Legacy DOOM OS 0.6.1 (ED5E)</option>
         </select>
-        <p id="build-description" class="build-description">Full DOOM OS 0.7.4 and SP-ETC v9.53, plus the five-mode Genie Suite with dedicated Drum Genie.</p>
+        <p id="build-description" class="build-description">Full DOOM OS 0.7.4 and SP-ETC v9.53 with the six-mode Genie Suite, including Bounce and the redesigned Sequence Setup.</p>
         <label for="input">Select <code>SP404MKII_APP1.bin</code></label>
         <input id="input" name="firmware" type="file" accept=".bin,application/octet-stream" required>
         <button id="build">Build and download APP1 <span aria-hidden="true">↓</span></button>
@@ -57,6 +56,12 @@
       <noscript><p>This builder needs JavaScript to verify and patch firmware in your browser.</p></noscript>
     </section>
   </div>
+
+  <section id="bounce-genie" class="guide" aria-labelledby="bounce-title">
+    <div class="section-title"><h2 id="bounce-title">Bounce</h2><a href="./genie-manual.html#bounce">Bounce controls <span aria-hidden="true">↗</span></a></div>
+    <p>Drop balls onto scale notes in BOX or send them through PLINKO. Catch the last bar as an editable Genie phrase, or record one bar straight to a sample pad.</p>
+    <p class="guide-note">On either Genie Suite build, press <kbd>Pad 15</kbd> twice from Sequence Setup, then <kbd>Pad 5</kbd>.</p>
+  </section>
 
   <section id="drum-genie" class="guide oled-feature" aria-labelledby="drum-title">
     <div class="drum-copy">
@@ -85,8 +90,9 @@
       <article><h3><a href="./genie-manual.html#grain">Grain Genie</a></h3><p>Turn a source pad into a grain cloud. Open with <kbd>Modes → Pad 2</kbd>.</p></article>
       <article><h3><a href="./genie-manual.html#drum">Drum</a></h3><p>Open with <kbd>Modes → Pad 3</kbd>.</p></article>
       <article><h3><a href="./genie-manual.html#vox">Vox</a></h3><p>Turn a source pad into playable chops. Open with <kbd>Modes → Pad 4</kbd>.</p></article>
+      <article><h3><a href="./genie-manual.html#bounce">Bounce</a></h3><p>Play a physics sequencer and catch its notes as a phrase. Open with <kbd>Modes → Pad 5</kbd>.</p></article>
     </div>
-    <p class="guide-note">Both Genie Suite builds include the Modes page. From Sequence Setup, press <kbd>Pad 15</kbd> twice to reach it. While Genie is open, <kbd>CTRL 1–3</kbd> adjust the selected effect. Exit Genie to edit the Sound Generator.</p>
+    <p class="guide-note">Both Genie Suite builds include the Modes page. From Sequence Setup, press <kbd>Pad 15</kbd> twice to reach it. In Sequence Setup and Drum, hold <kbd>SHIFT</kbd> while turning <kbd>CTRL 1–3</kbd> to edit settings. In Grain and Bounce, use the CTRL knobs directly.</p>
   </section>
 
   <aside id="support" class="support" aria-labelledby="support-title">
@@ -101,6 +107,6 @@
 </footer>
 <script src="./kits-data.js" defer></script>
 <script src="./doomos-patcher.js" defer></script>
-<script type="module" src="./builder.js?v=20261123-project-switch"></script>
+<script type="module" src="./builder.js?v=20261123-sdram"></script>
 </body>
 </html>
