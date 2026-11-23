@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#140e20">
   <meta name="description" content="Build the Genie Suite with dedicated Drum Genie for your Roland SP-404MKII.">
   <title>404 Sequence Genie · Firmware Builder</title>
-  <link rel="stylesheet" href="./genie.css?v=4">
+  <link rel="stylesheet" href="./genie.css?v=5">
 </head>
 <body>
 <a class="skip" href="#builder">Skip to firmware builder</a>
@@ -28,7 +28,7 @@
         <p class="eyebrow">FOR THE ROLAND SP-404MKII</p>
         <h1 id="title">Sequence<br><em>Genie</em></h1>
         <p>Generate phrases, play them through your own sounds, and bounce straight to a pad.</p>
-        <a class="release-link" href="#drum-genie">Explore Drum Genie <span aria-hidden="true">↓</span></a>
+        <div class="release-links"><a href="#lamp-intro">Watch the intro <span aria-hidden="true">↓</span></a><a class="release-link" href="#drum-genie">Explore Drum Genie <span aria-hidden="true">↓</span></a></div>
       </div>
       <div class="hero-art" aria-hidden="true"></div>
     </section>
@@ -57,7 +57,18 @@
     </section>
   </div>
 
-  <section id="drum-genie" class="guide drum-feature" aria-labelledby="drum-title">
+  <section id="lamp-intro" class="guide oled-feature" aria-labelledby="lamp-title">
+    <div class="drum-copy">
+      <h2 id="lamp-title">Sequence Genie intro</h2>
+      <p>A spark lights the lamp, smoke reveals the title, and a 16-step playhead lights up. The animation plays when you open Sequence Genie in either Genie Suite build.</p>
+    </div>
+    <video controls playsinline preload="none" width="512" height="256" poster="./genie-lamp-intro-poster.png" aria-label="Sequence Genie lamp animation preview">
+      <source src="./genie-lamp-intro.mp4" type="video/mp4">
+      <a href="./genie-lamp-intro.mp4">Download the animation</a>
+    </video>
+  </section>
+
+  <section id="drum-genie" class="guide oled-feature" aria-labelledby="drum-title">
     <div class="drum-copy">
       <h2 id="drum-title">Drum Genie</h2>
       <p>Four sample-pad lanes run alongside your melody, each with its own pad, hit count, and rotation. Audition a pad with <kbd>SUB PAD</kbd> and queue drum edits for the next phrase while your current groove plays.</p>
@@ -100,6 +111,6 @@
 </footer>
 <script src="./kits-data.js" defer></script>
 <script src="./doomos-patcher.js" defer></script>
-<script type="module" src="./builder.js?v=20261123-drum-page"></script>
+<script type="module" src="./builder.js?v=20261123-lamp"></script>
 </body>
 </html>

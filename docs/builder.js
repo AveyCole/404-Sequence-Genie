@@ -12,8 +12,8 @@ async function sha256(bytes) {
 
 const stockHash = "4a3d67711e14dcc97d50249a4eee7dd6df0251a2f37757cbbe2556c233730d80";
 const etc953Hash = "faeea5b004273f2dbcfca00387cfcc59078d3ba42fd832d52d363209d8b3b75e";
-const combinedHash = "8fe81914e3c3ea9d3566e39d019691bff37434fddfed581b23e09cf0c5337654";
-const stockGenieHash = "28bca5bd9f575dbb05727a38af72999e0569dda2ea7b7abadd8fc9f17398f758";
+const combinedHash = "921fee102f9ff1209e42fcd6b3ede3fbd2565d2ed29a2dd7d5c26ac32586039b";
+const stockGenieHash = "d4bd04ca42ed46eb6bfa143b2750d069383833bd781b6bd6282b01864ca06681";
 const legacyHash = "b60e4cfba4c018b6719c3ade14c74ae35094d8ffa7c42408a2c8f41de6815ef5";
 
 function patchURL(file, digest) {
