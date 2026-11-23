@@ -73,7 +73,7 @@ const builds = {
     file: "genie-doom074.patch",
     hash: combinedHash,
     progress: "Applying DOOM OS 0.7.4, SP-ETC v9.53, and the Genie Suite…",
-    description: "Full DOOM OS 0.7.4 and SP-ETC v9.53 with Sequence, Chord, Granule, Drum, and eight-second Vox.",
+    description: "Full DOOM OS 0.7.4 and SP-ETC v9.53, plus the five-mode Genie Suite with dedicated Drum Genie.",
   },
   stock: {
     build: buildFromStock,
@@ -81,12 +81,12 @@ const builds = {
     file: "genie-stock.patch",
     hash: stockGenieHash,
     progress: "Adding the Genie Suite to stock Roland 5.52…",
-    description: "Sequence, Chord, Granule, Drum, and eight-second Vox on Roland’s stock Sound Generator.",
+    description: "The five-mode Genie Suite with dedicated Drum Genie on Roland’s stock Sound Generator.",
   },
   legacy: {
     build: buildLegacy,
     label: "Legacy DOOM OS 0.6.1 + Sequence Genie",
-    description: "DOOM OS 0.6.1 and SP-ETC v9.53 with Sequence Genie. Also accepts the exact SP-ETC v9.53 APP1.",
+    description: "DOOM OS 0.6.1 and SP-ETC v9.53 with Sequence Genie only. Also accepts the exact SP-ETC v9.53 APP1.",
   },
 };
 

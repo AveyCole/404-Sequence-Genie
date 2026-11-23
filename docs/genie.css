@@ -38,7 +38,8 @@ h1, h2, h3, p { margin: 0; }
 h1, h2 { font-family: Georgia, serif; font-weight: 500; }
 h1 { font-size: clamp(3.7rem, 8.4vw, 7.3rem); line-height: .87; letter-spacing: -.07em; }
 h1 em { color: var(--gold); font-weight: inherit; }
-.intro-copy > p:last-child { max-width: 28rem; margin-top: 1.3rem; color: var(--muted); font-size: 1.04rem; }
+.intro-copy > h1 + p { max-width: 28rem; margin-top: 1.3rem; color: var(--muted); font-size: 1.04rem; }
+.release-link { display: inline-block; margin-top: .65rem; color: var(--gold); font-size: .9rem; font-weight: 650; }
 .hero-art {
   flex: 1;
   min-height: 15rem;
@@ -78,6 +79,10 @@ button:disabled { cursor: wait; opacity: .75; }
 .status[data-state=done] { color: #bef0c8; }
 .builder-links { border-top: 1px solid var(--line); padding-top: .85rem; margin-top: 1.25rem; display: flex; justify-content: space-between; gap: .55rem 1rem; flex-wrap: wrap; font-size: .85rem; }
 .guide { border-top: 1px solid var(--line); padding-block: 1.65rem 2.35rem; }
+.drum-feature { display: grid; grid-template-columns: 1fr minmax(16rem, 24rem); gap: 1.25rem 2.5rem; align-items: center; }
+.drum-copy p { max-width: 37rem; margin-block: .6rem; color: var(--muted); }
+.drum-copy a { display: inline-block; margin-top: .25rem; font-size: .9rem; }
+.drum-feature img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: .45rem; image-rendering: pixelated; }
 .section-title { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: .55rem 1.5rem; margin-bottom: 1.2rem; }
 .section-title a { font-size: .9rem; }
 .steps, .modes { display: grid; gap: .9rem; margin: 0; }
@@ -103,8 +108,11 @@ button:disabled { cursor: wait; opacity: .75; }
 }
 @media (max-width: 34rem) {
   .wrap { width: calc(100% - 2rem); }
+  .hero { padding-top: 1.15rem; gap: .8rem; }
+  .builder-intro { margin-bottom: 1rem; }
   .nav { gap: .1rem .8rem; }
   .nav-links { gap: .25rem 1rem; }
+  .drum-feature { grid-template-columns: 1fr; }
   .steps { grid-template-columns: 1fr; gap: 1rem; }
   .support { grid-template-columns: 5rem 1fr; gap: .8rem; }
   .support img { height: 6.5rem; }
