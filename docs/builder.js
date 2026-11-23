@@ -3,6 +3,7 @@ const input = document.querySelector("#input");
 const version = document.querySelector("#version");
 const button = document.querySelector("#build");
 const status = document.querySelector("#result");
+const description = document.querySelector("#build-description");
 
 async function sha256(bytes) {
   const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
@@ -10,14 +11,26 @@ async function sha256(bytes) {
 }
 
 const stockHash = "4a3d67711e14dcc97d50249a4eee7dd6df0251a2f37757cbbe2556c233730d80";
-const combinedHash = "49e489fcf93530767f087e472328f85dd9dfca012b28ae3794b5b89158a21460";
+const etc953Hash = "faeea5b004273f2dbcfca00387cfcc59078d3ba42fd832d52d363209d8b3b75e";
+const combinedHash = "788886b98b391a32005ba3aecf59413d2f65b6752281292712a62f16e1ebfe41";
+const stockGenieHash = "68a5bb3aa608aadf62e6845a62885d72bbd4181d088ebee7d2ba30b0b7c6507d";
+const legacyHash = "2dad8f418433091ba1384e496dcb027862e751a75ec78a3a0b00788105dbbafe";
+
+function patchURL(file, digest) {
+  return new URL(`./${file}?v=${digest.slice(0, 8)}`, import.meta.url);
+}
+
+function report(message, state = "") {
+  status.textContent = message;
+  status.dataset.state = state;
+}
 
 async function build074(source, inputHash) {
   if (inputHash !== stockHash) {
     throw new Error("The 0.7.4 build needs the original Roland 5.52 APP1.");
   }
-  status.textContent = "Applying DOOM OS 0.7.4, SP-ETC v9.53, and Sequence Genie…";
-  const response = await fetch(new URL("./genie-doom074.patch?v=49e489fc", import.meta.url));
+  report("Applying DOOM OS 0.7.4, SP-ETC v9.53, and the Genie Suite…");
+  const response = await fetch(patchURL("genie-doom074.patch", combinedHash));
   if (!response.ok) throw new Error("The 0.7.4 patch could not be loaded.");
   const container = new Uint8Array(await response.arrayBuffer());
   const {bytes, digest} = window.applyPatch(container, source);
@@ -29,26 +42,28 @@ async function buildStock(parent, inputHash) {
   if (inputHash !== stockHash) {
     throw new Error("The stock + Sequence Genie build needs the original Roland 5.52 APP1.");
   }
-  status.textContent = "Adding Sequence Genie to Roland 5.52…";
-  const response = await fetch(new URL("./genie-stock.json?v=fcfb7315", import.meta.url));
+  report("Adding Sequence Genie to Roland 5.52…");
+  const response = await fetch(patchURL("genie-stock.json", stockGenieHash));
   if (!response.ok) throw new Error("The stock Sequence Genie patch could not be loaded.");
   const patch = await response.json();
-  if (patch.input !== stockHash ||
-      patch.output !== "fcfb731560121f95eb8ff2d3756796bcb878b9b2d3605d1949765e297b754ead") {
+  if (patch.input !== stockHash || patch.output !== stockGenieHash) {
     throw new Error("The stock Sequence Genie patch checksum did not match.");
   }
   return applyOverlay(parent, patch);
 }
 
 async function buildLegacy(parent, inputHash) {
-  const response = await fetch(new URL("./genie-patch.json", import.meta.url));
+  if (inputHash !== etc953Hash && inputHash !== stockHash) {
+    throw new Error("Select the original Roland 5.52 APP1 or exact SP-ETC v9.53 APP1.");
+  }
+  const response = await fetch(patchURL("genie-patch.json", legacyHash));
   if (!response.ok) throw new Error("The legacy patch could not be loaded.");
   const patch = await response.json();
-  if (inputHash !== patch.input) {
-    if (inputHash !== stockHash) {
-      throw new Error("Select the original Roland 5.52 APP1 or exact SP-ETC v9.53 APP1.");
-    }
-    status.textContent = "Applying SP-ETC v9.53…";
+  if (patch.input !== etc953Hash || patch.output !== legacyHash) {
+    throw new Error("The legacy patch checksum did not match.");
+  }
+  if (inputHash === stockHash) {
+    report("Applying SP-ETC v9.53…");
     const base = window.applyPatch(window.fromBase64(window.DOOMOS_PATCH), parent);
     parent = window.applyPatch(window.fromBase64(window.DOOMOS_KITS_PATCH), base.bytes).bytes;
     if (await sha256(parent) !== patch.input) throw new Error("SP-ETC checksum mismatch.");
@@ -68,18 +83,38 @@ async function applyOverlay(parent, patch) {
 }
 
 const builds = {
-  "074": [build074, "DOOM OS 0.7.4"],
-  legacy: [buildLegacy, "legacy"],
-  stock: [buildStock, "Stock 5.52 + Sequence Genie"],
+  "074": {
+    build: build074,
+    label: "DOOM OS 0.7.4 + Genie Suite",
+    description: "Full DOOM OS 0.7.4 with SP-ETC v9.53, Sequence, Chord, Granule, and Vox Genie.",
+  },
+  stock: {
+    build: buildStock,
+    label: "Stock 5.52 + Sequence Genie",
+    description: "Roland’s Sound Generator with Sequence Genie, pitched samples, drum lanes, MIDI out, and bounce.",
+  },
+  legacy: {
+    build: buildLegacy,
+    label: "Legacy DOOM OS 0.6.1 + Sequence Genie",
+    description: "DOOM OS 0.6.1 and SP-ETC v9.53 with Sequence Genie. Also accepts the exact SP-ETC v9.53 APP1.",
+  },
 };
+
+function updateDescription() {
+  description.textContent = builds[version.value].description;
+  report("");
+}
+version.addEventListener("change", updateDescription);
+input.addEventListener("change", () => report(""));
+updateDescription();
 
 form.addEventListener("submit", async event => {
   event.preventDefault();
   const file = input.files[0];
-  if (!file) return;
-  const [build, label] = builds[version.value];
-  button.disabled = true;
-  status.textContent = "Checking firmware…";
+  if (!file || button.disabled) return;
+  const {build, label} = builds[version.value];
+  button.disabled = version.disabled = input.disabled = true;
+  report("Checking firmware…");
   try {
     const source = new Uint8Array(await file.arrayBuffer());
     const inputHash = await sha256(source);
@@ -90,10 +125,10 @@ form.addEventListener("submit", async event => {
     link.download = "SP404MKII_APP1.bin";
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 30000);
-    status.textContent = `Verified ${label} APP1 downloaded.`;
+    report(`Verified ${label}. APP1 download started.`, "done");
   } catch (error) {
-    status.textContent = error.message;
+    report(error.message, "error");
   } finally {
-    button.disabled = false;
+    button.disabled = version.disabled = input.disabled = false;
   }
 });

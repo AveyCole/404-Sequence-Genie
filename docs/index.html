@@ -1,84 +1,93 @@
 <!doctype html>
 <html lang="en">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>404 Sequence Genie</title>
-<meta name="description" content="A generative sequencer for the Roland SP-404MKII Sound Generator.">
-<style>
-:root{color-scheme:dark;--bg:#121015;--panel:#201b25;--ink:#f5ebfa;--muted:#c9bccf;--accent:#e9b6ff;--line:#483753}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,sans-serif}a{color:var(--accent)}a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid white;outline-offset:4px}.wrap{width:min(1100px,92vw);margin:auto}header{border-bottom:1px solid var(--line)}nav{display:flex;justify-content:space-between;padding:1rem 0;gap:1rem}nav a{text-decoration:none}.links{display:flex;flex-wrap:wrap;align-items:flex-start;gap:.75rem 1rem}.control-note{margin-top:1rem}.cheddar{display:grid;grid-template-columns:150px 1fr;gap:1.25rem;align-items:center;padding:1rem;margin:0 0 2rem;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent)}.cheddar img{width:100%;height:108px;object-fit:cover;display:block;filter:saturate(.78)}.cheddar h2{margin:0 0 .55rem}.cheddar .cta{padding:.45rem .8rem}.cheddar .secondary{background:transparent;color:var(--accent);outline:1px solid var(--line);outline-offset:-1px}@media(max-width:470px){.cheddar{grid-template-columns:85px 1fr;gap:.75rem}.cheddar img{height:92px}.cheddar .links{gap:.35rem}}.hero{display:grid;grid-template-columns:1fr .8fr;gap:3rem;align-items:center;padding:5rem 0 4rem}h1,h2,p{margin:0 0 1rem}h1{font-size:clamp(3.5rem,9vw,7rem);line-height:.9;letter-spacing:-.075em}h2{font-size:clamp(1.45rem,3vw,2rem)}p{color:var(--muted)}.device{margin:0;background:#18121e;border:1px solid var(--line);padding:1.2rem;box-shadow:8px 8px 0 #2a1c34}.device div{display:grid;grid-template-columns:repeat(16,1fr);grid-template-rows:repeat(8,19px);background:repeating-linear-gradient(#33253d 0 1px,transparent 1px 19px);border-bottom:1px solid var(--line)}.device span{background:var(--accent);margin:2px;box-shadow:0 0 8px #e9b6ff55}.device figcaption{font:14px ui-monospace,monospace;color:var(--accent);margin-top:1rem}.panel{border-top:1px solid var(--line);padding:2rem 0;display:grid;grid-template-columns:1fr 2fr;gap:2rem}.status{padding:1rem;background:var(--panel);border-left:3px solid var(--accent)}label,input{display:block;margin-bottom:.8rem}input{max-width:100%}button,.cta{display:inline-block;border:0;background:var(--accent);color:#20102a;padding:.7rem 1rem;font:inherit;font-weight:700;text-decoration:none;cursor:pointer}button:disabled{cursor:wait;opacity:.65}dl{display:grid;grid-template-columns:minmax(5rem,auto) 1fr;gap:.55rem 1rem;margin:0}dt{font-weight:700}dd{margin:0;color:var(--muted)}footer{border-top:1px solid var(--line);padding:1.25rem 0;color:var(--muted)}@media(max-width:720px){.hero,.panel{grid-template-columns:1fr;gap:1rem}.hero{padding:3rem 0}}
-select{font:inherit;color:inherit;background:#161522;border:1px solid #7564a5;border-radius:.4rem;padding:.5rem;margin:.2rem 0 .8rem;display:block}</style>
-<header><nav class="wrap" aria-label="Main"><a href="./">404 Sequence Genie</a><div class="links"><a href="#controls">Controls</a><a href="#support">Support</a><a href="https://github.com/AveyCole/404-Sequence-Genie">GitHub</a></div></nav></header>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#140e20">
+  <meta name="description" content="Build Sequence Genie firmware locally for your Roland SP-404MKII.">
+  <title>404 Sequence Genie · Firmware Builder</title>
+  <link rel="stylesheet" href="./genie.css?v=2">
+</head>
+<body>
+<a class="skip" href="#builder">Skip to firmware builder</a>
+<header class="site-header">
+  <nav class="wrap nav" aria-label="Main navigation">
+    <a class="brand" href="./"><span aria-hidden="true">✦</span> 404 Sequence Genie</a>
+    <div class="nav-links">
+      <a href="#builder" aria-current="location">Builder</a>
+      <a href="#install">Install</a>
+      <a href="./genie-manual.html">Manual</a>
+      <a href="#support">Support</a>
+    </div>
+  </nav>
+</header>
 <main class="wrap">
-<section class="hero"><div><h1>Sequence<br>Genie</h1><p>Generate, mutate, and play phrases of up to 128 steps on the SP-404MKII Sound Generator.</p><a class="cta" href="#builder">Open the builder</a></div>
-<figure class="device"><div aria-hidden="true"><span style="grid-area:7/1/8/4"></span><span style="grid-area:5/4/6/6"></span><span style="grid-area:3/7/4/9"></span><span style="grid-area:4/10/5/12"></span><span style="grid-area:6/12/7/14"></span><span style="grid-area:2/15/3/17"></span></div><figcaption>Piano roll · illustrative phrase</figcaption></figure></section>
-<section class="cheddar" id="support" aria-labelledby="cheddar-title">
-<img src="./cheddar-butt.jpg" width="800" height="600" alt="Cheddar Butt, a gray and white cat sitting on a log">
-<div><h2 id="cheddar-title">Cheddar Butt</h2><div class="links"><a class="cta" href="https://buymeacoffee.com/aveycole">Buy Me a Coffee</a><a class="cta secondary" href="https://ko-fi.com/aveycole">Ko-fi</a></div></div>
-</section>
-<section class="panel" id="builder">
-<h2>Firmware builder</h2>
-<div>
-<p>Choose a firmware build and select an original <strong>Roland 5.52 APP1</strong>. Stock + Sequence Genie adds Genie to Roland’s Sound Generator. The DOOM OS builds also include SP-ETC v9.53. The builder verifies checksums locally in your browser.</p>
-<form id="form">
-<label for="version">Firmware version</label>
-<select id="version">
-<option value="074">DOOM OS 0.7.4 (651C)</option>
-<option value="legacy">Legacy DOOM OS 0.6.1 (ED5E)</option>
-<option value="stock">Stock Roland 5.52 + Sequence Genie</option>
-</select>
-<label for="input">APP1 file</label>
-<input id="input" type="file" accept=".bin" required>
-<p>The legacy build also accepts an exact SP-ETC v9.53 APP1.</p>
-<button id="build">Build and download APP1</button>
-<p role="status" id="result"></p>
-</form>
-</div>
-</section>
-<section class="panel" id="controls">
-<h2>Hardware controls</h2>
-<div>
-<p>Press <strong>SHIFT + RECORD SETTING</strong> to open Sound Generator and choose the sound you want to sequence. Press <strong>SHIFT + SUB PAD</strong> to open Genie.</p>
-<p>Hold <strong>REMAIN</strong> and press <strong>SUB PAD</strong> to open DOOM OS. On its step grid, hold <strong>SUB PAD</strong>, tap an empty pad, then release <strong>SUB PAD</strong> to browse instruments. Turn and press VALUE to load one. See the <a href="https://klangfeldlabs.com/doom-os/manual/">DOOM OS manual</a> for its controls.</p>
-<dl>
-<dt>DATA / PUSH ENTER</dt><dd>Turn to select a setup row. Push to enter edit mode, turn to change the value, then push again to leave edit mode. In the piano roll, turn DATA while stopped to browse bars. Push DATA to return to setup and toggle edit mode.</dd>
-<dt>Pads 1 and 2</dt><dd>Move to the previous or next setup row.</dd>
-<dt>Pads 3 and 4</dt><dd>Decrease or increase the selected value. On Phrase, Pad 3 generates a new phrase and Pad 4 mutates the current one. On Notes or Rhythm, either pad rerolls that part.</dd>
-<dt>Pad 11</dt><dd>Bounce one cycle to the first empty, unprotected sample pad. Stop playback before pressing it and wait for the destination message. ONCE saves with LOOP off. LOOP saves a forward loop. REV records the notes in reverse order and saves them as a loop. PING records one full forward-and-back cycle of notes and saves it as a forward loop. GATE defaults off on looping bounces. The sample pad’s Original BPM is set to Genie’s tempo.</dd>
-<dt>Pad 12</dt><dd>While playing, queue a fresh phrase for the next boundary. Press again to cancel. With looping off, the queued phrase plays once.</dd>
-<dt>Pad 13</dt><dd>Stop playback and undo the most recent edit or phrase change.</dd>
-<dt>Pad 14</dt><dd>Cycle ONCE, LOOP, REV, and PING. LOOP repeats forward. REV repeats backward. PING alternates direction and plays each turnaround step once. While playing, a new mode takes effect at the next boundary.</dd>
-<dt>Pad 15</dt><dd>Switch between setup and piano roll. The roll shows one bar at a time and follows the playhead during playback.</dd>
-<dt>Pad 16</dt><dd>Start or stop playback.</dd>
-<dt>SHIFT + Pad 15 / 16</dt><dd>On the 0.7.4 build, select the previous or next DOOM OS instrument pad in the current project. The popup names the source. Cycle back to Sound Generator to use its voice. Set up the instrument pad in DOOM OS before opening Genie. Genie's native instrument note routing passed emulation.</dd>
-<dt>EXIT</dt><dd>Return directly to Sound Generator. During a bounce, EXIT cancels the take first. SHIFT + SUB PAD also closes Genie.</dd>
-</dl>
-</div>
-</section>
-<section class="panel" id="settings">
-<h2>Setup settings</h2>
-<div>
-<dl>
-<dt>Phrase</dt><dd>Turn left in edit mode for a new phrase or right to mutate the current one by swapping two steps.</dd>
-<dt>Scale</dt><dd>Choose one of 19 REDUX scale modes. Generated notes use that scale relative to Root.</dd>
-<dt>Root</dt><dd>Choose the tonic from C through B.</dd>
-<dt>Hits</dt><dd>Set how many steps play notes. Hits are distributed across the phrase, with a range from 1 to the current step count.</dd>
-<dt>Tempo</dt><dd>Set 40–240 BPM. The grid uses straight sixteenths.</dd>
-<dt>Length</dt><dd>Choose 16–128 steps in 16-step increments.</dd>
-<dt>Rotate</dt><dd>Shift the rhythm around the phrase by one step per turn, wrapping at the current length.</dd>
-<dt>Velocity Min / Max</dt><dd>Set the allowed note velocity range from 1 to 127 when Random Vel is on. Minimum and maximum stay in order.</dd>
-<dt>Gate Pct</dt><dd>Set the time before note-off as a percentage of one step, from 10% to 95%. At 120 BPM a sixteenth lasts 125 ms, so 75% holds it for about 94 ms before the synth’s release begins.</dd>
-<dt>Notes</dt><dd>Reroll pitches while keeping hit positions and velocities.</dd>
-<dt>Rhythm</dt><dd>Pick a new rotation for the same hit count while keeping the pitches and velocities assigned to the steps.</dd>
-<dt>Octaves</dt><dd>Use 1–4 octaves above the root. Notes above the Sound Generator’s playable range fold down by octaves.</dd>
-<dt>Random Vel</dt><dd>Turn on to vary each note’s velocity within the min and max. Turn off for a fixed velocity of 100.</dd>
-</dl>
-<p class="control-note">Editing a value, rerolling, or using Undo stops playback. Use Pad 12 for a phrase change at the next loop boundary.</p>
-</div>
-</section>
-<section class="panel"><h2>Compatibility</h2><div><p>The stock build uses Roland’s Sound Generator and adds Genie’s setup, piano roll, playback, and bounce. It has passed emulator tests and is awaiting a hardware check. The 651C build combines DOOM OS 0.7.4 with SP-ETC v9.53 on Roland 5.52. The legacy ED5E build uses DOOM OS 0.6.1. Genie adds 19 REDUX scales, independent note and rhythm rerolls, and an eight-bar piano roll.</p><p>Keep the original Roland firmware pair and a project backup before testing. Use the downloaded APP1 with the original Roland 5.52 APP0.</p></div></section>
+  <div class="hero">
+    <section class="intro" aria-labelledby="title">
+      <div class="intro-copy">
+        <p class="eyebrow">FOR THE ROLAND SP-404MKII</p>
+        <h1 id="title">Sequence<br><em>Genie</em></h1>
+        <p>Generate phrases, play them through your own sounds, and bounce straight to a pad.</p>
+      </div>
+      <div class="hero-art" aria-hidden="true"></div>
+    </section>
+    <section class="builder" id="builder" aria-labelledby="builder-title">
+      <p class="eyebrow">SYSTEM UPDATE</p>
+      <h2 id="builder-title">Firmware builder</h2>
+      <p class="builder-intro">Pick a build and load your Roland 5.52 <code>APP1</code>. Your file stays in your browser.</p>
+      <form id="form">
+        <label for="version">Firmware build</label>
+        <select id="version" name="version" aria-describedby="build-description">
+          <option value="074">DOOM OS 0.7.4 (651C) + Genie Suite</option>
+          <option value="stock">Stock Roland 5.52 + Sequence Genie</option>
+          <option value="legacy">Legacy DOOM OS 0.6.1 (ED5E)</option>
+        </select>
+        <p id="build-description" class="build-description">Full DOOM OS 0.7.4 with SP-ETC v9.53, Sequence, Chord, Granule, and Vox Genie.</p>
+        <label for="input">Select <code>SP404MKII_APP1.bin</code></label>
+        <input id="input" name="firmware" type="file" accept=".bin,application/octet-stream" required>
+        <button id="build">Build and download APP1 <span aria-hidden="true">↓</span></button>
+        <p id="result" class="status" role="status" aria-live="polite"></p>
+      </form>
+      <div class="builder-links">
+        <a href="https://www.roland.com/global/support/by_product/sp-404mk2/updates_drivers/174cc2fc-ddb2-4128-87a0-848b882cdcea/">Get Roland 5.52</a>
+        <a href="#install">Install the result</a>
+      </div>
+      <noscript><p>This builder needs JavaScript to verify and patch firmware in your browser.</p></noscript>
+    </section>
+  </div>
 
-</main><footer><div class="wrap">Based on <a href="https://github.com/tracelistener/SP-ETC">SP-ETC</a> by tracelistener. <a href="https://klangfeldlabs.com/doom-os/">DOOM OS</a> by Klangfeld Labs.</div></footer>
-<script src="./kits-data.js"></script>
-<script src="./doomos-patcher.js"></script>
-<script type="module" src="./builder.js?v=fcfb7315"></script>
+  <section id="install" class="guide" aria-labelledby="install-title">
+    <div class="section-title"><h2 id="install-title">Install on the 404</h2><a href="./genie-manual.html">Read the full manual <span aria-hidden="true">↗</span></a></div>
+    <ol class="steps">
+      <li><h3>Prepare the card</h3><p>Back up your projects. Copy the generated <code>APP1</code> and original Roland 5.52 <code>APP0</code> to the root of your update SD card.</p></li>
+      <li><h3>Run the updater</h3><p>Insert the card, hold <kbd>SHIFT</kbd> while powering on, then press <kbd>VALUE</kbd>. Wait for <b>UPDATE COMPLETE!</b> before powering off and removing the card.</p></li>
+      <li><h3>Open Genie</h3><p>Press <kbd>SHIFT + RECORD SETTING</kbd> to open Sound Generator, then <kbd>SHIFT + SUB PAD</kbd> for Genie. Press <kbd>Pad 16</kbd> to play.</p></li>
+    </ol>
+  </section>
+
+  <section id="controls" class="guide" aria-labelledby="controls-title">
+    <div class="section-title"><h2 id="controls-title">On the hardware</h2><a href="./genie-manual.html#sequence">All controls <span aria-hidden="true">↗</span></a></div>
+    <div class="modes">
+      <article><h3><a href="./genie-manual.html#sequence">Sequence</a></h3><p>Fresh scale-aware phrases up to 128 steps. Use <kbd>Pad 15</kbd> for the piano roll, <kbd>SHIFT + Pad 7</kbd> for sources on workflow builds, and <kbd>Pad 11</kbd> to bounce.</p></article>
+      <article><h3><a href="./genie-manual.html#chord">Chord</a></h3><p>Build progressions from your phrase, choose a voicing, and set strum timing. Open with <kbd>Modes → Pad 1</kbd>.</p></article>
+      <article><h3><a href="./genie-manual.html#granule">Granule</a></h3><p>Turn a source pad into a grain cloud. Open with <kbd>Modes → Pad 2</kbd>.</p></article>
+      <article><h3><a href="./genie-manual.html#vox">Vox</a></h3><p>Turn a source pad into playable chops. Open with <kbd>Modes → Pad 4</kbd>.</p></article>
+    </div>
+    <p class="guide-note">The Genie Suite build includes the Modes page. From Sequence Setup, press <kbd>Pad 15</kbd> twice to reach it.</p>
+  </section>
+
+  <aside id="support" class="support" aria-labelledby="support-title">
+    <img src="./cheddar-butt.jpg" width="800" height="600" alt="Cheddar Butt, a gray and white cat sitting on a log" loading="lazy">
+    <div><h2 id="support-title">Cheddar Butt</h2><p>Support Sequence Genie.</p>
+      <div class="support-links"><a href="https://buymeacoffee.com/aveycole">Buy Me a Coffee</a><a href="https://ko-fi.com/aveycole">Ko-fi</a></div>
+    </div>
+  </aside>
+</main>
+<footer class="site-footer">
+  <div class="wrap"><span>404 Sequence Genie</span><div><a href="https://github.com/AveyCole/404-Sequence-Genie">GitHub</a><a href="https://github.com/tracelistener/SP-ETC">SP-ETC</a><a href="https://klangfeldlabs.com/doom-os/">DOOM OS</a></div></div>
+</footer>
+<script src="./kits-data.js" defer></script>
+<script src="./doomos-patcher.js" defer></script>
+<script type="module" src="./builder.js?v=20261122"></script>
+</body>
 </html>
