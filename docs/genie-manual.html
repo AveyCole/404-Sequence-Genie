@@ -17,12 +17,12 @@ code{overflow-wrap:anywhere}@media print{body{background:#fff}main{max-width:non
 </style>
 <main>
 <header><h1>404 Genie Manual</h1>
-<p>SP-404MKII · Roland 5.52 · SP-ETC 9.53 · DOOM OS 0.7.4 (651C)</p>
+<p>SP-404MKII · Roland 5.52 · Stock Genie Suite and DOOM OS 0.7.4 (651C) Genie Suite</p>
 <nav aria-label="Contents"><a href="#start">Quick start</a><a href="#sequence">Sequence</a><a href="#chord">Chord</a><a href="#granule">Granule</a><a href="#vox">Vox</a><a href="#check">Troubleshooting</a></nav>
 </header>
 <section id="start"><h2>Quick start</h2>
 <ol>
-<li>Back up your projects and keep a known-good firmware pair. Put the supplied <code>SP404MKII_APP0.bin</code> and <code>SP404MKII_APP1.bin</code> at the root of the update SD card. This pair uses the original Roland 5.52 APP0 and the combined Genie APP1.</li>
+<li>Back up your projects and keep a known-good firmware pair. Put the supplied <code>SP404MKII_APP0.bin</code> and <code>SP404MKII_APP1.bin</code> at the root of the update SD card. Both builds use the original Roland 5.52 APP0. Choose the stock Genie Suite for Roland’s Sound Generator or the combined Genie Suite for SP-ETC and DOOM OS instruments.</li>
 <li>Insert the card. Hold <kbd>SHIFT</kbd> while powering on, then press <kbd>VALUE</kbd> at the update screen. Wait for <strong>UPDATE COMPLETE!</strong>, then power off, remove the card, and restart. <a href="https://www.roland.com/global/support/by_product/sp-404mk2/updates_drivers/174cc2fc-ddb2-4128-87a0-848b882cdcea/">Roland 5.52 update instructions</a></li>
 <li>Press <kbd>SHIFT + RECORD SETTING</kbd> to open Sound Generator. Press <kbd>SHIFT + SUB PAD</kbd> to enter Sequence Genie. Press <kbd>Pad 16</kbd> to audition.</li>
 <li>Press <kbd>Pad 15</kbd> through Setup → Piano Roll → Modes. From Modes, choose <kbd>Pad 1</kbd> for Chord, <kbd>Pad 2</kbd> for Granule, or <kbd>Pad 4</kbd> for Vox.</li>
@@ -42,6 +42,7 @@ code{overflow-wrap:anywhere}@media print{body{background:#fff}main{max-width:non
 <tr><th scope="row">SHIFT + Pad 8</th><td>Open eight phrase slots for the current project. Pads 1–8 recall. Pads 9–16 save to slots 1–8. EXIT closes slots.</td></tr>
 <tr><th scope="row">SHIFT + Pads 15 / 16</th><td>Previous or next loaded DOOM OS instrument. The source list also includes the Sound Generator.</td></tr>
 <tr><th scope="row">Hold MFX + pad</th><td>Use pads to select an effect in the stock MFX picker.</td></tr>
+<tr><th scope="row">CTRL 1–3</th><td>Adjust the selected effect while Genie is open. Exit Genie to edit Sound Generator parameters with these knobs.</td></tr>
 </tbody></table>
 <h3>Setup</h3>
 <table><thead><tr><th scope="col">Row</th><th scope="col">Setting</th></tr></thead><tbody>
@@ -64,7 +65,7 @@ code{overflow-wrap:anywhere}@media print{body{background:#fff}main{max-width:non
 <p>Hold <kbd>REMAIN</kbd> and press <kbd>SUB PAD</kbd> to open DOOM OS. On its step grid, hold SUB PAD, tap an empty pad, and release SUB PAD. Turn and press VALUE to pick the instrument. Return to Genie and select that instrument as its source. For DOOM OS controls, see the <a href="https://klangfeldlabs.com/doom-os/manual/">DOOM OS manual</a>.</p>
 </section>
 <section id="chord"><h2>Chord Genie</h2>
-<p>On Modes, press Pad 1. Chord uses the current phrase, scale, and root. Use the SP-ETC Sound Generator as the source for polyphonic chords.</p>
+<p>On Modes, press Pad 1. Chord uses the current phrase, scale, and root. Select Sound Generator as the source for polyphonic chords.</p>
 <ul>
 <li><strong>Chord</strong> selects OFF, triad, seventh, suspended, or power.</li>
 <li><strong>Voicing</strong> selects Close, Open, Drop 2, or Spread.</li>
@@ -89,11 +90,11 @@ code{overflow-wrap:anywhere}@media print{body{background:#fff}main{max-width:non
 <tr><th scope="row">Pad 15</th><td>Toggle waveform and chop markers.</td></tr>
 <tr><th scope="row">Pad 16</th><td>Acquire and play, cancel acquisition, or stop playback.</td></tr>
 </tbody></table>
-<p>Vox and Granule capture up to the first second of pad playback through the sampler fill and downmix it to mono. The source may briefly sound while loading. For a later vocal line, copy and trim that region to another pad first. Continuous audio may produce a single chop. Edits stop the current audition. Press Pad 16 to hear the new settings.</p>
+<p>Vox captures up to eight seconds from the start of pad playback and downmixes it to mono. Capture ends earlier if the pad ends. Granule captures up to one second. The source can sound while loading. For a later vocal line, copy and trim that region to another pad first. Continuous audio may produce a single chop. Edits stop the current audition. Press Pad 16 to hear the new settings.</p>
 </section>
 <section id="check"><h2>Troubleshooting</h2>
 <ul>
-<li>If Modes has no Vox entry, check that you installed the supplied combined build. The standalone stock build has its own feature set.</li>
+<li>If Modes has no Vox entry, check that you installed a Genie Suite build. The earlier stock Sequence Genie build has Setup and Piano Roll only.</li>
 <li>If the source is unavailable, choose a populated pad and make sure it plays in normal Sample mode. For chopped vocals, try a clip with distinct transients.</li>
 <li>If bounce reports <b>REC BUSY / CHECK ROUTING</b>, stop other recording or resampling, then retry. For batch bounce, check for a contiguous run of free pads.</li>
 <li>If you hear a click or level jump when evaluating a bounce, check the compressor and compare with the same monitoring level.</li>

@@ -12,9 +12,9 @@ async function sha256(bytes) {
 
 const stockHash = "4a3d67711e14dcc97d50249a4eee7dd6df0251a2f37757cbbe2556c233730d80";
 const etc953Hash = "faeea5b004273f2dbcfca00387cfcc59078d3ba42fd832d52d363209d8b3b75e";
-const combinedHash = "788886b98b391a32005ba3aecf59413d2f65b6752281292712a62f16e1ebfe41";
-const stockGenieHash = "68a5bb3aa608aadf62e6845a62885d72bbd4181d088ebee7d2ba30b0b7c6507d";
-const legacyHash = "2dad8f418433091ba1384e496dcb027862e751a75ec78a3a0b00788105dbbafe";
+const combinedHash = "1342062d526895a8637fc86a9f209c10b67738a1896f5f8754cf6e700ae17227";
+const stockGenieHash = "a5b53cb72b42eb676ce1621894c51d257d086f88a32f84356827737462549d83";
+const legacyHash = "8bf51c2d6efe303bd7aaa39358737e43904f8b4e9e6fd7b7e531906e72c9bc04";
 
 function patchURL(file, digest) {
   return new URL(`./${file}?v=${digest.slice(0, 8)}`, import.meta.url);
@@ -25,31 +25,15 @@ function report(message, state = "") {
   status.dataset.state = state;
 }
 
-async function build074(source, inputHash) {
-  if (inputHash !== stockHash) {
-    throw new Error("The 0.7.4 build needs the original Roland 5.52 APP1.");
-  }
-  report("Applying DOOM OS 0.7.4, SP-ETC v9.53, and the Genie Suite…");
-  const response = await fetch(patchURL("genie-doom074.patch", combinedHash));
-  if (!response.ok) throw new Error("The 0.7.4 patch could not be loaded.");
+async function buildFromStock(source, inputHash, {label, file, hash, progress}) {
+  if (inputHash !== stockHash) throw new Error(`${label} needs the original Roland 5.52 APP1.`);
+  report(progress);
+  const response = await fetch(patchURL(file, hash));
+  if (!response.ok) throw new Error(`The ${label} patch could not be loaded.`);
   const container = new Uint8Array(await response.arrayBuffer());
   const {bytes, digest} = window.applyPatch(container, source);
-  if (digest !== combinedHash) throw new Error("The 0.7.4 build checksum did not match.");
+  if (digest !== hash) throw new Error(`The ${label} build checksum did not match.`);
   return bytes;
-}
-
-async function buildStock(parent, inputHash) {
-  if (inputHash !== stockHash) {
-    throw new Error("The stock + Sequence Genie build needs the original Roland 5.52 APP1.");
-  }
-  report("Adding Sequence Genie to Roland 5.52…");
-  const response = await fetch(patchURL("genie-stock.json", stockGenieHash));
-  if (!response.ok) throw new Error("The stock Sequence Genie patch could not be loaded.");
-  const patch = await response.json();
-  if (patch.input !== stockHash || patch.output !== stockGenieHash) {
-    throw new Error("The stock Sequence Genie patch checksum did not match.");
-  }
-  return applyOverlay(parent, patch);
 }
 
 async function buildLegacy(parent, inputHash) {
@@ -84,14 +68,20 @@ async function applyOverlay(parent, patch) {
 
 const builds = {
   "074": {
-    build: build074,
+    build: buildFromStock,
     label: "DOOM OS 0.7.4 + Genie Suite",
-    description: "Full DOOM OS 0.7.4 with SP-ETC v9.53, Sequence, Chord, Granule, and Vox Genie.",
+    file: "genie-doom074.patch",
+    hash: combinedHash,
+    progress: "Applying DOOM OS 0.7.4, SP-ETC v9.53, and the Genie Suite…",
+    description: "Full DOOM OS 0.7.4 and SP-ETC v9.53 with Sequence, Chord, Granule, and eight-second Vox.",
   },
   stock: {
-    build: buildStock,
-    label: "Stock 5.52 + Sequence Genie",
-    description: "Roland’s Sound Generator with Sequence Genie, pitched samples, drum lanes, MIDI out, and bounce.",
+    build: buildFromStock,
+    label: "Stock Roland 5.52 + Genie Suite",
+    file: "genie-stock.patch",
+    hash: stockGenieHash,
+    progress: "Adding the Genie Suite to stock Roland 5.52…",
+    description: "Sequence, Chord, Granule, and eight-second Vox on Roland’s stock Sound Generator.",
   },
   legacy: {
     build: buildLegacy,
@@ -112,20 +102,20 @@ form.addEventListener("submit", async event => {
   event.preventDefault();
   const file = input.files[0];
   if (!file || button.disabled) return;
-  const {build, label} = builds[version.value];
+  const selection = builds[version.value];
   button.disabled = version.disabled = input.disabled = true;
   report("Checking firmware…");
   try {
     const source = new Uint8Array(await file.arrayBuffer());
     const inputHash = await sha256(source);
-    const output = await build(source, inputHash);
+    const output = await selection.build(source, inputHash, selection);
     const url = URL.createObjectURL(new Blob([output], {type:"application/octet-stream"}));
     const link = document.createElement("a");
     link.href = url;
     link.download = "SP404MKII_APP1.bin";
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 30000);
-    report(`Verified ${label}. APP1 download started.`, "done");
+    report(`Verified ${selection.label}. APP1 download started.`, "done");
   } catch (error) {
     report(error.message, "error");
   } finally {

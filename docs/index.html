@@ -39,10 +39,10 @@
         <label for="version">Firmware build</label>
         <select id="version" name="version" aria-describedby="build-description">
           <option value="074">DOOM OS 0.7.4 (651C) + Genie Suite</option>
-          <option value="stock">Stock Roland 5.52 + Sequence Genie</option>
+          <option value="stock">Stock Roland 5.52 + Genie Suite</option>
           <option value="legacy">Legacy DOOM OS 0.6.1 (ED5E)</option>
         </select>
-        <p id="build-description" class="build-description">Full DOOM OS 0.7.4 with SP-ETC v9.53, Sequence, Chord, Granule, and Vox Genie.</p>
+        <p id="build-description" class="build-description">Full DOOM OS 0.7.4 and SP-ETC v9.53 with Sequence, Chord, Granule, and eight-second Vox.</p>
         <label for="input">Select <code>SP404MKII_APP1.bin</code></label>
         <input id="input" name="firmware" type="file" accept=".bin,application/octet-stream" required>
         <button id="build">Build and download APP1 <span aria-hidden="true">↓</span></button>
@@ -73,7 +73,7 @@
       <article><h3><a href="./genie-manual.html#granule">Granule</a></h3><p>Turn a source pad into a grain cloud. Open with <kbd>Modes → Pad 2</kbd>.</p></article>
       <article><h3><a href="./genie-manual.html#vox">Vox</a></h3><p>Turn a source pad into playable chops. Open with <kbd>Modes → Pad 4</kbd>.</p></article>
     </div>
-    <p class="guide-note">The Genie Suite build includes the Modes page. From Sequence Setup, press <kbd>Pad 15</kbd> twice to reach it.</p>
+    <p class="guide-note">Both Genie Suite builds include the Modes page. From Sequence Setup, press <kbd>Pad 15</kbd> twice to reach it. While Genie is open, <kbd>CTRL 1–3</kbd> adjust the selected effect. Exit Genie to edit the Sound Generator.</p>
   </section>
 
   <aside id="support" class="support" aria-labelledby="support-title">
@@ -88,6 +88,6 @@
 </footer>
 <script src="./kits-data.js" defer></script>
 <script src="./doomos-patcher.js" defer></script>
-<script type="module" src="./builder.js?v=20261122"></script>
+<script type="module" src="./builder.js?v=20261122-fx"></script>
 </body>
 </html>
