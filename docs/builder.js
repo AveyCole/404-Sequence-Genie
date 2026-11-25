@@ -17,8 +17,8 @@ async function sha256(bytes) {
 
 const stockHash = "4a3d67711e14dcc97d50249a4eee7dd6df0251a2f37757cbbe2556c233730d80";
 const etc953Hash = "faeea5b004273f2dbcfca00387cfcc59078d3ba42fd832d52d363209d8b3b75e";
-const combinedHash = "312336524355eeb77550a3bd9408da106648c2f172cee8350bd7c3c7d7b6f7aa";
-const stockGenieHash = "377044332a2e13ef5fa5f6b9b5905d45941021105209644fa43a0d82da2f1153";
+const combinedHash = "ad938db7c27622cd0c3fb711522133ea61b3d25cced239fb9cc1a32b2cd487c1";
+const stockGenieHash = "7292579fad7013e251c520d82bbf1ae0b88d1f8d2a9877f2249fc263262ee059";
 const legacyHash = "b60e4cfba4c018b6719c3ade14c74ae35094d8ffa7c42408a2c8f41de6815ef5";
 
 function patchURL(file, digest) {
@@ -78,7 +78,7 @@ const builds = {
     file: "genie-doom074.patch",
     hash: combinedHash,
     progress: "Applying DOOM OS 0.7.4, SP-ETC v9.53, and the Genie Suite…",
-    description: "Full DOOM OS 0.7.4 and SP-ETC v9.53 with the six-mode Genie Suite, including Bounce and the SDRAM project-switch fix.",
+    description: "Full DOOM OS 0.7.4 and SP-ETC v9.53 with the six-mode Genie Suite, including Bounce, audio-clock MIDI note timing, and the SDRAM project-switch fix.",
   },
   stock: {
     build: buildFromStock,
@@ -86,7 +86,7 @@ const builds = {
     file: "genie-stock.patch",
     hash: stockGenieHash,
     progress: "Adding the Genie Suite to stock Roland 5.52…",
-    description: "The six-mode Genie Suite on stock Roland 5.52, including Bounce and the SDRAM project-switch fix.",
+    description: "The six-mode Genie Suite on stock Roland 5.52, including Bounce, audio-clock MIDI note timing, and the SDRAM project-switch fix.",
   },
   legacy: {
     build: buildLegacy,

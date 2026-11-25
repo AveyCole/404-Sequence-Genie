@@ -79,7 +79,7 @@ code{overflow-wrap:anywhere}@media print{body{background:#fff}main{max-width:non
 <tr><th scope="row">Tempo, Swing, Grid</th><td>Tempo is 40–240 BPM. Both Genie Suite builds add Swing (50–75%, with 50% straight) and Grid (straight sixteenths or sixteenth-note triplets).</td></tr>
 <tr><th scope="row">Velocity Min / Max, Random Vel</th><td>Set the generated velocity range and whether hits vary in strength. The sound source determines how it responds to velocity.</td></tr>
 <tr><th scope="row">Gate Pct</th><td>How much of the step or ratchet interval a note stays held, from 10% to 95%. A sample's own playback settings affect whether it responds to note-off.</td></tr>
-<tr><th scope="row">MIDI Out, Tempo Src</th><td>Suite builds send live note messages on channel 1–16 or turn output off. GENIE uses the internal tempo. SP BPM reads the 404’s reported bank tempo and applies changes at phrase boundaries.</td></tr>
+<tr><th scope="row">MIDI Out, Tempo Src</th><td>Suite builds send live note messages on channel 1–16, timed by the audio clock. Select OFF to disable MIDI Out. GENIE uses the internal tempo. SP BPM reads the 404’s reported bank tempo and applies changes at phrase boundaries.</td></tr>
 <tr><th scope="row">Bounce Count</th><td>On Suite builds, record 1–8 takes. A batch needs consecutive empty, unprotected pads. The first take uses the current phrase. Later takes use mutations.</td></tr>
 <tr><th scope="row">Sound</th><td>Choose a melodic sample pad or return to the Sound Generator. Use SHIFT + Pad 7 for the full source picker.</td></tr>
 </tbody></table>
@@ -113,7 +113,7 @@ code{overflow-wrap:anywhere}@media print{body{background:#fff}main{max-width:non
 <section id="grain"><h2 id="granule">Grain Genie</h2>
 <p>On Modes, press Pad 2. The waveform breaks into grains before the Source page opens. Choose a pad and a capture length of 1, 2, 4, or 8 seconds. Press Pad 16 to capture and play, or press it again to cancel capture. Acquisition follows the pad in real time and ends early if the sample finishes.</p>
 <table><thead><tr><th scope="col">Page</th><th scope="col">Settings</th></tr></thead><tbody>
-<tr><th scope="row">Source</th><td>Pad and capture length. Follow stays off in this release.</td></tr>
+<tr><th scope="row">Source</th><td>Pad, capture length, and Follow. Set Follow to PHRASE to play Sequence Genie’s current melody through the captured pad. Pad 16 starts at the first step in the selected playback direction. The phrase supplies pitch, hits, gate, swing, probability, and ratchets while the original source voice and drum lanes stay silent. The phrase root plays at the grain’s base pitch. Choose OFF to return to a free-running cloud.</td></tr>
 <tr><th scope="row">Cloud</th><td>Position, spray around that position, and forward or backward scan.</td></tr>
 <tr><th scope="row">Grain</th><td>Grain size (10–500 ms), density (1–32 grains per second), and envelope shape.</td></tr>
 <tr><th scope="row">Color</th><td>Pitch (−12 to +12 semitones), pitch spread (0–3 octaves), and reverse probability.</td></tr>
