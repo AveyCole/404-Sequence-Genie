@@ -88,7 +88,7 @@ code{overflow-wrap:anywhere}@media print{body{background:#fff}main{max-width:non
 <h3>Piano roll</h3>
 <p>Turn VALUE while stopped to browse pages. On either Genie Suite build, push VALUE to enter step edit. Pads 1/2 choose Note, Chance, or Repeat. Pads 3/4 move the cursor. Turn VALUE to change the selected field. Pad 5 toggles hit or rest, and Pad 6 locks or unlocks the step. Chance runs from 0–100%. Repeat runs from 1–4 triggers. Push VALUE again to leave step edit. On Legacy, press Pad 15 to return to Setup for edits.</p>
 <h3 id="drum">Drum Genie</h3>
-<p>On the Modes page, press <kbd>Pad 3</kbd>. Drum Pad is selected first. Turn VALUE through Drum Pad, Drum Lane, Drum Hits, and Drum Rotate. Push VALUE to edit a field. Pad 15 or EXIT returns to Modes while the phrase keeps playing.</p>
+<p>On the Modes page, press <kbd>Pad 3</kbd>. Turn VALUE to browse and push VALUE to edit. Select a lane in <strong>Drum Lane</strong>, then choose its <strong>Source</strong>. <strong>Sample</strong> plays the assigned pad. <strong>Tone</strong> plays the current Sound Generator tone at the selected note. <strong>Inst</strong> plays an instrument pad loaded in the current DOOM Suite project. <strong>MIDI</strong> sends the lane’s selected note on its own channel. Channel OFF silences that lane’s MIDI output. Pad 15 or EXIT returns to Modes while the phrase keeps playing.</p>
 <p>A triangle marks the selected lane. The highlighted cell marks the parameter you’re editing. Squares are hits and dots are rests. An OFF lane has a blank strip and a dash count. An assigned lane with zero hits shows rests and a count of 0.</p>
 <p>The ruler and playhead follow the current 16-step bar. A draft shows its own first bar without a playhead. After you queue the draft, the overview follows the playing phrase until the handoff.</p>
 <p>Drum Hits and Drum Rotate are independent of melodic Hits and Rotate. Ordinary drum samples ring out between steps. Looping drum pads restart at their next hit and stop at the end of playback.</p>
@@ -111,7 +111,7 @@ code{overflow-wrap:anywhere}@media print{body{background:#fff}main{max-width:non
 <p>Pad 16 plays or stops, Pad 11 records to a pad, and Pad 15 or EXIT returns to Modes from the main Chord screen.</p>
 </section>
 <section id="grain"><h2 id="granule">Grain Genie</h2>
-<p>On Modes, press Pad 2. The waveform breaks into grains before the Source page opens. Choose a pad and a capture length of 1, 2, 4, or 8 seconds. Press Pad 16 to capture and play, or press it again to cancel capture. Acquisition follows the pad in real time and ends early if the sample finishes.</p>
+<p>On Modes, press Pad 2. The waveform breaks into grains before the Source page opens. Choose a pad and a capture length of 1, 2, 4, or 8 seconds. Press Pad 16 to play. Grains start as soon as enough audio has loaded, and the dry source stays muted while the rest loads. Press Pad 16 again to cancel loading or stop playback.</p>
 <table><thead><tr><th scope="col">Page</th><th scope="col">Settings</th></tr></thead><tbody>
 <tr><th scope="row">Source</th><td>Pad, capture length, and Follow. Set Follow to PHRASE to play Sequence Genie’s current melody through the captured pad. Pad 16 starts at the first step in the selected playback direction. The phrase supplies pitch, hits, gate, swing, probability, and ratchets while the original source voice and drum lanes stay silent. The phrase root plays at the grain’s base pitch. Choose OFF to return to a free-running cloud.</td></tr>
 <tr><th scope="row">Cloud</th><td>Position, spray around that position, and forward or backward scan.</td></tr>
@@ -149,6 +149,7 @@ code{overflow-wrap:anywhere}@media print{body{background:#fff}main{max-width:non
 <tr><th scope="row">CTRL 1–3</th><td>Gravity (25–200%), bounciness (50–100%), and time speed (50–200%). Move the knob through its current value to pick it up. Moving gravity from 100% switches to FREE.</td></tr>
 </tbody></table>
 <p><strong>World</strong> selects the world, sync or free gravity, and bounciness. <strong>Time</strong> sets quantization (Off, 16th, or 8th), horizontal speed, and the ball limit. <strong>Sound</strong> sets octave span, ball collisions, and wall triggers.</p>
+<p>Sequence Genie’s <strong>MIDI Out</strong> controls Bounce’s pitched floor and Plinko notes. Wall, ceiling, and ball collisions use the source assigned to their Drum Genie lane, including its own MIDI channel and note. These lanes work with the main MIDI Out set to OFF. Pad 11 records audio from the 404’s internal recorder.</p>
 <p>On DOOM Suite, BOX Pads 4–6 keep their fast rhythms under long Sound Generator releases. When all four voices are busy, Bounce and Sequence Genie shorten the oldest Genie release tail to make room for the next note.</p>
 <p>For steady quarter notes in BOX, set SYNC, bounciness to 100%, and time speed to 100%, then press Pad 2.</p>
 </section>

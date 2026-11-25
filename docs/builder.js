@@ -17,8 +17,8 @@ async function sha256(bytes) {
 
 const stockHash = "4a3d67711e14dcc97d50249a4eee7dd6df0251a2f37757cbbe2556c233730d80";
 const etc953Hash = "faeea5b004273f2dbcfca00387cfcc59078d3ba42fd832d52d363209d8b3b75e";
-const combinedHash = "ad938db7c27622cd0c3fb711522133ea61b3d25cced239fb9cc1a32b2cd487c1";
-const stockGenieHash = "7292579fad7013e251c520d82bbf1ae0b88d1f8d2a9877f2249fc263262ee059";
+const combinedHash = "475aae65b7c5788cc1c3c750086793fbe3640b6b4115db740b8c731f200d2ba2";
+const stockGenieHash = "a197fa59436e6673b2f5a5c0837eaa0f753d13882cfb31f433aef3edc8d9a345";
 const legacyHash = "b60e4cfba4c018b6719c3ade14c74ae35094d8ffa7c42408a2c8f41de6815ef5";
 
 function patchURL(file, digest) {
@@ -78,7 +78,7 @@ const builds = {
     file: "genie-doom074.patch",
     hash: combinedHash,
     progress: "Applying DOOM OS 0.7.4, SP-ETC v9.53, and the Genie Suite…",
-    description: "Full DOOM OS 0.7.4 and SP-ETC v9.53 with the six-mode Genie Suite, including Bounce, audio-clock MIDI note timing, and the SDRAM project-switch fix.",
+    description: "Full DOOM OS 0.7.4 and SP-ETC v9.53 with the six-mode Genie Suite. Drum lanes can play samples, Sound Generator tones, DOOM instruments, or external MIDI in Drum Genie and Bounce.",
   },
   stock: {
     build: buildFromStock,
@@ -86,7 +86,7 @@ const builds = {
     file: "genie-stock.patch",
     hash: stockGenieHash,
     progress: "Adding the Genie Suite to stock Roland 5.52…",
-    description: "The six-mode Genie Suite on stock Roland 5.52, including Bounce, audio-clock MIDI note timing, and the SDRAM project-switch fix.",
+    description: "The six-mode Genie Suite on stock Roland 5.52. Drum lanes can play samples, Sound Generator tones, or external MIDI in Drum Genie and Bounce.",
   },
   legacy: {
     build: buildLegacy,
