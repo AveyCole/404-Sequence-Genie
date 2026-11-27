@@ -1,0 +1,94 @@
+name: Build Screen Genie (macOS)
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: GitHub Release tag to upload Screen-Genie-macOS.zip to
+        required: false
+        default: screen-genie-v1
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Universal2 Python 3.12 (with Tcl/Tk 8.6)
+        run: |
+          curl -fsSL https://www.python.org/ftp/python/3.12.10/python-3.12.10-macos11.pkg -o /tmp/python-3.12.10-macos11.pkg
+          sudo installer -pkg /tmp/python-3.12.10-macos11.pkg -target /
+          /Library/Frameworks/Python.framework/Versions/3.12/bin/python3 --version
+          /Library/Frameworks/Python.framework/Versions/3.12/bin/python3 -c "import tkinter; print('Tk', tkinter.TkVersion)"
+
+      - name: Install build dependencies
+        run: |
+          /Library/Frameworks/Python.framework/Versions/3.12/bin/python3 -m pip install --upgrade pip pyserial pyinstaller pillow
+
+      - name: Generate macOS .icns icon from genie-display.ico
+        run: |
+          /Library/Frameworks/Python.framework/Versions/3.12/bin/python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          ico = Path("tools/genie_display/genie-display.ico")
+          iconset = Path("build/ScreenGenie.iconset")
+          iconset.mkdir(parents=True, exist_ok=True)
+          img = Image.open(ico).convert("RGBA")
+          for size in (16, 32, 64, 128, 256, 512):
+              img.resize((size, size), Image.LANCZOS).save(iconset / f"icon_{size}x{size}.png")
+              if size <= 256:
+                  img.resize((size * 2, size * 2), Image.LANCZOS).save(iconset / f"icon_{size}x{size}@2x.png")
+          PY
+          iconutil -c icns build/ScreenGenie.iconset -o build/ScreenGenie.icns
+
+      - name: Build Apple Silicon (arm64) Screen Genie.app
+        run: |
+          /Library/Frameworks/Python.framework/Versions/3.12/bin/python3 -m PyInstaller \
+            --noconfirm \
+            --windowed \
+            --target-arch arm64 \
+            --name "Screen Genie" \
+            --icon build/ScreenGenie.icns \
+            --osx-bundle-identifier com.aveycole.screengenie \
+            --add-data "tools/genie_display/sp404mkii-panel.jpg:." \
+            --paths tools/genie_display \
+            --exclude-module numpy \
+            --hidden-import serial.tools.list_ports_osx \
+            tools/genie_display/genie_display.py
+          codesign --force --deep --sign - "dist/Screen Genie.app"
+          lipo -info "dist/Screen Genie.app/Contents/MacOS/Screen Genie"
+
+      - name: Smoke-test macOS key resolution and package zip
+        run: |
+          PYTHONPATH=tools/genie_display /Library/Frameworks/Python.framework/Versions/3.12/bin/python3 - <<'PY'
+          import sys, types, genie_display as gd, obs_server, panel_window
+          assert sys.platform == "darwin"
+          E = types.SimpleNamespace
+          assert gd.Viewer.resolve(E(keycode=0x35, keysym="Escape", char="\x1b")) == (gd.KEY_DOWN, gd.KEY_UP, 0x22)
+          assert gd.Viewer.resolve(E(keycode=0x30, keysym="Tab", char="\t")) == (gd.KEY_DOWN, gd.KEY_UP, 0x13)
+          assert gd.Viewer.resolve(E(keycode=0x33, keysym="BackSpace", char="\x08")) == (gd.KEY_DOWN, gd.KEY_UP, 0x1A)
+          assert gd.Viewer.resolve(E(keycode=0x38, keysym="Shift_L", char="")) == (gd.KEY_DOWN, gd.KEY_UP, 0x2A)
+          assert gd.Viewer.resolve(E(keycode=18, keysym="exclam", char="!")) == (gd.PAD_DOWN, gd.PAD_UP, 0)
+          assert gd.Viewer.resolve(E(keycode=12, keysym="Q", char="Q")) == (gd.PAD_DOWN, gd.PAD_UP, 4)
+          assert len(panel_window.PANEL_CONTROLS) == 53
+          print("macOS Apple Silicon smoke test passed!")
+          PY
+          ditto -c -k --sequesterRsrc --keepParent "dist/Screen Genie.app" Screen-Genie-macOS.zip
+          ls -lh Screen-Genie-macOS.zip
+
+      - name: Upload Screen-Genie-macOS.zip to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ github.event.inputs.release_tag || 'screen-genie-v1' }}"
+          gh release upload "$TAG" Screen-Genie-macOS.zip --clobber
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Screen-Genie-macOS
+          path: Screen-Genie-macOS.zip
