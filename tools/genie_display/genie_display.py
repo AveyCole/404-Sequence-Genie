@@ -528,7 +528,7 @@ class Viewer:
         ctrl_m.add_command(label="Customize Keymap…", command=self.open_keymap_editor)
         macro_m = tk.Menu(ctrl_m, tearoff=0)
         for label, mid in (
-            ("Open Sequence Genie (SHIFT+SUB PAD)", "open_genie"),
+            ("Open Sequence Genie (SHIFT+REC SET → SHIFT+SUB PAD)", "open_genie"),
             ("Open Modes Page (Pad 15 ×2)", "modes"),
             ("Toggle Screen Genie (SHIFT+Pad 14)", "toggle_link"),
             ("Bounce / Resample (Pad 11)", "bounce"),
@@ -838,13 +838,28 @@ class Viewer:
     def run_macro(self, macro_id: str):
         if not self.can_control():
             return
+        # Each step is (delay_ms, command, a, b)
         sequences = {
-            "open_genie": [(KEY_DOWN, 0x2A, 0), (KEY_DOWN, 0x13, 0), (KEY_UP, 0x13, 0), (KEY_UP, 0x2A, 0)],
-            "modes": [(PAD_DOWN, 14, PAD_VELOCITY), (PAD_UP, 14, 0), (PAD_DOWN, 14, PAD_VELOCITY), (PAD_UP, 14, 0)],
-            "toggle_link": [(KEY_DOWN, 0x2A, 0), (PAD_DOWN, 13, PAD_VELOCITY), (PAD_UP, 13, 0), (KEY_UP, 0x2A, 0)],
-            "bounce": [(PAD_DOWN, 10, PAD_VELOCITY), (PAD_UP, 10, 0)],
-            "bus_fx": [(KEY_DOWN, 0x10, 0), (KEY_UP, 0x10, 0)],
-            "utility": [(KEY_DOWN, 0x2A, 0), (PAD_DOWN, 12, PAD_VELOCITY), (PAD_UP, 12, 0), (KEY_UP, 0x2A, 0)],
+            "open_genie": [
+                (0, KEY_DOWN, 0x2A, 0), (40, KEY_DOWN, 0x16, 0),
+                (100, KEY_UP, 0x16, 0), (140, KEY_UP, 0x2A, 0),
+                (520, KEY_DOWN, 0x2A, 0), (560, KEY_DOWN, 0x13, 0),
+                (620, KEY_UP, 0x13, 0), (660, KEY_UP, 0x2A, 0),
+            ],
+            "modes": [
+                (0, PAD_DOWN, 14, PAD_VELOCITY), (50, PAD_UP, 14, 0),
+                (130, PAD_DOWN, 14, PAD_VELOCITY), (180, PAD_UP, 14, 0),
+            ],
+            "toggle_link": [
+                (0, KEY_DOWN, 0x2A, 0), (40, PAD_DOWN, 13, PAD_VELOCITY),
+                (100, PAD_UP, 13, 0), (140, KEY_UP, 0x2A, 0),
+            ],
+            "bounce": [(0, PAD_DOWN, 10, PAD_VELOCITY), (60, PAD_UP, 10, 0)],
+            "bus_fx": [(0, KEY_DOWN, 0x10, 0), (60, KEY_UP, 0x10, 0)],
+            "utility": [
+                (0, KEY_DOWN, 0x2A, 0), (40, PAD_DOWN, 12, PAD_VELOCITY),
+                (100, PAD_UP, 12, 0), (140, KEY_UP, 0x2A, 0),
+            ],
         }
         steps = sequences.get(macro_id)
         if not steps:
@@ -852,8 +867,8 @@ class Viewer:
         self._beep()
         self._show_combo_hud(f"MACRO: {macro_id.replace('_', ' ').upper()}")
         self._announce(macro_id.replace("_", " "))
-        for idx, (cmd, a, b) in enumerate(steps):
-            self.root.after(idx * 45, lambda c=cmd, x=a, y=b: self.send(c, x, y))
+        for delay_ms, cmd, a, b in steps:
+            self.root.after(delay_ms, lambda c=cmd, x=a, y=b: self.send(c, x, y))
 
     def _resolve_for(self, event, pad_keys, button_keys):
         if sys.platform == "win32":
