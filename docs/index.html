@@ -35,184 +35,17 @@
     <section class="builder" id="builder" aria-labelledby="builder-title">
       <p class="eyebrow">SYSTEM UPDATE</p>
       <h2 id="builder-title">Firmware builder</h2>
-      <p class="builder-intro">Pick a preset or choose your firmware modules. Load your Roland 5.52 <code>APP1</code> to build it in your browser.</p>
+      <p class="builder-intro">Pick a build and load your Roland 5.52 <code>APP1</code> to patch it in your browser.</p>
       <form id="form">
         <div class="preset-field">
           <label for="version">Build selection</label>
           <select id="version" name="version" aria-describedby="build-description">
-            <option value="custom" selected>Custom module selection</option>
-            <option value="074">DOOM OS 0.7.4 (651C) + Genie Suite</option>
+            <option value="074" selected>DOOM OS 0.7.4 (651C) + Genie Suite</option>
             <option value="stock">Stock Roland 5.52 + Genie Suite</option>
             <option value="legacy">Legacy DOOM OS 0.6.1 (ED5E)</option>
           </select>
         </div>
-        <fieldset id="modules" class="modules" hidden disabled aria-describedby="build-description">
-          <legend class="visually-hidden">Choose modules</legend>
-          <div class="module-map">
-            <div class="module-node node-base">
-              <label for="base">Base firmware</label>
-              <select id="base">
-                <option value="stock">Roland 5.52</option>
-                <option value="074" selected>DOOM OS 0.7.4</option>
-                <option value="061">DOOM OS 0.6.1</option>
-              </select>
-              <label id="doom-boot-option" class="module-check component-option">
-                <input id="doomBoot" type="checkbox" checked>
-                <span>DOOM startup animations <small>Optional on DOOM OS 0.7.4</small></span>
-              </label>
-              <label id="doom-hyperspace-option" class="module-check component-suboption">
-                <input id="doomHyperspace" type="checkbox" checked>
-                <span>Hyperspace <small>Falls back to VHS when off</small></span>
-              </label>
-              <fieldset id="doom-styles-option" class="genie-mode-options boot-style-options">
-                <legend>Extra startup styles</legend>
-                <label class="module-check"><input id="doomBubble" type="checkbox" checked> Bubble</label>
-                <label class="module-check"><input id="doomSketch" type="checkbox" checked> Sketch</label>
-                <label class="module-check"><input id="doomHello" type="checkbox" checked> Hello</label>
-                <label class="module-check"><input id="doomGraffiti" type="checkbox" checked> Graffiti</label>
-              </fieldset>
-              <label id="doom-help-option" class="module-check component-option">
-                <input id="doomHelp" type="checkbox" checked>
-                <span>Contextual Help <small>Hold SHIFT to show control tips</small></span>
-              </label>
-              <details id="doom-feature-options" class="component-option" hidden>
-                <summary>DOOM features</summary>
-                <fieldset class="genie-mode-options">
-                  <legend class="visually-hidden">Keep these DOOM tools</legend>
-                  <label class="module-check">
-                    <input id="doomShortcuts" type="checkbox" checked>
-                    <span>Custom shortcuts <small>Run your assigned button combinations</small></span>
-                  </label>
-                  <label class="module-check">
-                    <input id="doomArp" type="checkbox" checked>
-                    <span>Arpeggiator <small>Live arps, settings, and Print ARP</small></span>
-                  </label>
-                  <label class="module-check">
-                    <input id="doomInstruments" type="checkbox" checked>
-                    <span>DOOM Instruments <small>Native instrument and kit picker, editor, and playback</small></span>
-                  </label>
-                  <label class="module-check">
-                    <input id="doomBounce" type="checkbox" checked>
-                    <span>Bounce in Place <small>Render a DOOM track or the full mix to a pad</small></span>
-                  </label>
-                  <label class="module-check">
-                    <input id="doomSidechain" type="checkbox" checked>
-                    <span>Sidechain panel <small>DOOM bus routing, compression controls, and gain display</small></span>
-                  </label>
-                  <label class="module-check">
-                    <input id="doomWaveform" type="checkbox" checked>
-                    <span>Waveform Display <small>Show the output and selected track in Grid and Mixer</small></span>
-                  </label>
-                </fieldset>
-              </details>
-            </div>
-            <div class="module-node node-spetc">
-              <label class="module-check">
-                <input id="spetc" type="checkbox" checked>
-                <span>SP-ETC v9.53 <small>TraceListener Sound Generator and pad tools</small></span>
-              </label>
-              <details id="spetc-feature-options" class="component-option" hidden>
-                <summary>SP-ETC features</summary>
-                <fieldset class="genie-mode-options">
-                  <legend class="visually-hidden">Keep these SP-ETC tools</legend>
-                  <label class="module-check">
-                    <input id="spetcPadBounce" type="checkbox" value="Pad Bounce" checked>
-                    <span>Pad Bounce <small>Render a pad through FX with hold RESAMPLE + pad</small></span>
-                  </label>
-                  <label class="module-check">
-                    <input id="spetcHiddenFx" type="checkbox" value="Hidden FX Settings" checked>
-                    <span>Hidden FX Settings <small>Extra bus and input FX parameter pages</small></span>
-                  </label>
-                  <label class="module-check">
-                    <input id="spetcPadEnvelopes" type="checkbox" value="Advanced Pad Envelopes" checked>
-                    <span>Advanced Pad Envelopes <small>Fine timing, retrigger fades, pitch and filter sweeps</small></span>
-                  </label>
-                </fieldset>
-              </details>
-              <label id="note-repeat-option" class="module-check component-option">
-                <input id="noteRepeat" type="checkbox" checked>
-                <span>MPC-style note repeat <small>Clear to use Roland’s ROLL behavior</small></span>
-              </label>
-              <label id="chromatic-option" class="module-check component-option">
-                <input id="chromatic" type="checkbox" checked>
-                <span>Expanded sample chromatic mode <small>Extended note range and scale controls</small></span>
-              </label>
-            </div>
-            <figure class="module-device">
-              <!-- Panel photograph from the Roland SP-404MKII product gallery. -->
-              <img src="./sp404mkii-panel.jpg" alt="Roland SP-404MKII sampler" width="858" height="1345">
-              <span id="device-oled" class="device-oled" aria-hidden="true">GENIE SUITE</span>
-            </figure>
-            <div class="module-node node-genie">
-              <label for="genie">Sequence Genie</label>
-              <select id="genie">
-                <option value="none">Off</option>
-                <option value="core">Sequence only</option>
-                <option value="suite" selected>Genie Suite · choose modes</option>
-              </select>
-              <fieldset id="genie-mode-options" class="genie-mode-options">
-                <legend>Optional Genie modes</legend>
-                <label class="module-check"><input type="checkbox" id="modeChord" checked> Chord</label>
-                <label class="module-check"><input type="checkbox" id="modeGrain" checked> Grain</label>
-                <label class="module-check"><input type="checkbox" id="modeDrum" checked> Drum</label>
-                <label class="module-check"><input type="checkbox" id="modeVox" checked> Vox</label>
-                <label class="module-check"><input type="checkbox" id="modeBounce" checked> Bounce</label>
-              </fieldset>
-              <label id="lamp-option" class="module-check component-option">
-                <input id="genieLamp" type="checkbox" checked>
-                <span>Sequence entry lamp <small>Animation when you open Sequence Genie</small></span>
-              </label>
-              <details id="intro-options" class="component-option">
-                <summary>Mode entry animations</summary>
-                <fieldset class="genie-mode-options">
-                  <legend class="visually-hidden">Keep these animations</legend>
-                  <label class="module-check"><input id="introChord" data-mode="0" type="checkbox" checked> Chord</label>
-                  <label class="module-check"><input id="introGrain" data-mode="1" type="checkbox" checked> Grain</label>
-                  <label class="module-check"><input id="introDrum" data-mode="2" type="checkbox" checked> Drum</label>
-                  <label class="module-check"><input id="introVox" data-mode="3" type="checkbox" checked> Vox</label>
-                  <label class="module-check"><input id="introBounce" data-mode="4" type="checkbox" checked> Bounce</label>
-                </fieldset>
-              </details>
-              <fieldset id="addon-options" class="genie-mode-options workflow-options component-option">
-                <legend>Suite add-ons</legend>
-                <label class="module-check">
-                  <input id="genieScramble" type="checkbox" checked>
-                  <span>Scramble <small>SHIFT + Pad 9 rhythm, pitch, and velocity reroll with undo</small></span>
-                </label>
-                <label class="module-check">
-                  <input id="genieDisplay" type="checkbox" checked>
-                  <span>Screen Genie <small>Whole-device OLED mirror + USB keyboard remote control (SHIFT + Pad 14)</small></span>
-                </label>
-              </fieldset>
-              <details id="workflow-options" class="component-option">
-                <summary>Sequence workflow</summary>
-                <fieldset class="genie-mode-options workflow-options">
-                  <legend class="visually-hidden">Keep these workflow features</legend>
-                  <label class="module-check"><input value="32" type="checkbox" checked>
-                    <span>Phrase slots <small>Save and recall phrases with SHIFT + Pad 8</small></span>
-                  </label>
-                  <label class="module-check"><input value="64" type="checkbox" checked>
-                    <span>Live draft editing <small>Edit the next phrase during playback</small></span>
-                  </label>
-                  <label class="module-check"><input value="128" type="checkbox" checked>
-                    <span>Batch bounce <small>Record variations to multiple pads with one command</small></span>
-                  </label>
-                </fieldset>
-              </details>
-            </div>
-            <label id="portrait-option" class="module-node module-check node-portrait">
-              <input id="portrait" type="checkbox" checked>
-              <span>Cheddar Butt <small>Startup portrait · Roland 5.52 and DOOM OS 0.7.4</small></span>
-            </label>
-          </div>
-          <div id="firmware-space" class="firmware-space" hidden>
-            <label for="firmware-meter">APP1 space</label>
-            <meter id="firmware-meter" min="0" max="1" value="0" aria-describedby="firmware-size"></meter>
-            <output id="firmware-size" aria-live="polite"></output>
-            <p id="firmware-released" hidden></p>
-          </div>
-        </fieldset>
-        <p id="build-description" class="build-description">Full DOOM OS 0.7.4 and SP-ETC v9.53 with the six-mode Genie Suite, including Bounce and the redesigned Sequence Setup.</p>
+        <p id="build-description" class="build-description">Full DOOM OS 0.7.4 and SP-ETC v9.53 with all Genie modes, Screen Genie USB mirror &amp; remote control, and the Cheddar Butt startup. Drum Genie has eight lanes.</p>
         <div class="build-controls">
           <div>
             <label for="input">Select <code>SP404MKII_APP1.bin</code></label>
@@ -283,6 +116,6 @@
 </footer>
 <script src="./kits-data.js" defer></script>
 <script src="./doomos-patcher.js" defer></script>
-<script type="module" src="./builder.js?v=20261127-remote"></script>
+<script type="module" src="./builder.js?v=20261127-presets"></script>
 </body>
 </html>
