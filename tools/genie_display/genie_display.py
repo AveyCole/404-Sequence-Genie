@@ -22,7 +22,7 @@ FLAG_INPUT_READY = 2
 
 # Host -> 404 input (firmware: screen_link_input). Ten bytes each.
 INPUT_PREFIX = b"\xf0\x7dGN\x10"
-KEY_DOWN, KEY_UP, PAD_DOWN, PAD_UP, VALUE_TURN = 1, 2, 3, 4, 5
+KEY_DOWN, KEY_UP, PAD_DOWN, PAD_UP, VALUE_TURN, LINK_STATE = 1, 2, 3, 4, 5, 6
 PAD_VELOCITY = 100
 
 # Keyboard grid laid out like the 404's pads: the top row is pads 13-16.
@@ -205,6 +205,7 @@ class Viewer:
         self.receiver = ScreenReceiver()
         self.frame = None
         self.last_frame = None
+        self.last_hello = 0.0
         self.frame_times = deque(maxlen=30)
         self.ports = []
         self.fullscreen = False
@@ -249,6 +250,8 @@ class Viewer:
         if sys.platform == "darwin":
             root.createcommand("tk::mac::Quit", self.close)
         self.refresh()
+        if len(self.ports) == 1:
+            self.open()
         self.poll()
 
     def refresh(self):
@@ -273,7 +276,9 @@ class Viewer:
             self.last_frame = None
             self.frame = None
             self.draw()
-            self.status["text"] = "Connected. Waiting for SP-404MKII screen frames."
+            self.last_hello = time.monotonic()
+            self.usb.write(input_packet(LINK_STATE, 1))
+            self.status["text"] = "Connected. Activating Screen Genie on SP-404MKII…"
         except OSError as error:
             self.status["text"] = f"Could not open the 404. Close Roland’s app if it owns the port. {error}"
 
@@ -297,6 +302,9 @@ class Viewer:
                 self.draw()
             elif self.last_frame and time.monotonic() - self.last_frame > 2:
                 self.status["text"] = "Waiting for the next frame. Showing the last screen."
+            elif self.usb.connection and not self.frame and time.monotonic() - self.last_hello >= 0.5:
+                self.last_hello = time.monotonic()
+                self.usb.write(input_packet(LINK_STATE, 1))
         except OSError as error:
             self.held.clear()
             self.usb.close()
@@ -440,6 +448,11 @@ class Viewer:
 
     def close(self):
         self.release_all()
+        if self.usb.connection:
+            try:
+                self.usb.write(input_packet(LINK_STATE, 0))
+            except OSError:
+                pass
         self.usb.close()
         self.root.destroy()
 
