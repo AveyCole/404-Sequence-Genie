@@ -349,8 +349,7 @@ function updateSelection() {
     if (componentMask & 2) changes.push("Sample chromatic mode uses the baseline controls.");
     if (removeLamp) changes.push("Sequence Genie opens directly to Setup.");
     if (omittedAddons.some(check => check.id === "genieScramble")) changes.push("Scramble is off.");
-    if (omittedAddons.some(check => check.id === "genieDisplay")) changes.push("Screen Genie USB mirror is off.");
-    if (omittedAddons.some(check => check.id === "genieSampleDna")) changes.push("Sample DNA is off.");
+    if (omittedAddons.some(check => check.id === "genieDisplay")) changes.push("Screen Genie USB mirror and remote control are off.");
     if (workflowMask & 128) changes.push("Bounce records one take at a time.");
     if (omittedDoomTools.some(check => check.id === "doomShortcuts")) changes.push("Custom shortcuts are disabled.");
     if (omittedDoomTools.some(check => check.id === "doomArp")) changes.push("The DOOM arpeggiator is disabled.");
@@ -404,7 +403,7 @@ async function changeSelection() {
   catalogError = "";
   updateSelection();
   try {
-    const response = await fetch(new URL("./firmware-catalog.json?v=20261127-vol-dna", import.meta.url));
+    const response = await fetch(new URL("./firmware-catalog.json?v=20261127-remote", import.meta.url));
     if (!response.ok) throw new Error();
     const result = await response.json();
     if (result.version !== 12 || !Array.isArray(result.profiles) || !Number.isInteger(result.limit) ||
