@@ -1,0 +1,76 @@
+name: Build Screen Genie (Linux)
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: GitHub Release tag to upload Screen-Genie-Linux.tar.gz to
+        required: false
+        default: screen-genie-v1
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install system Tk and Python build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-tk python3-pip
+          python3 -m pip install --upgrade pip pyserial pyinstaller pillow
+
+      - name: Smoke-test Linux key resolution and modules
+        run: |
+          PYTHONPATH=tools/genie_display python3 - <<'PY'
+          import sys, types, genie_display as gd, obs_server, panel_window
+          assert sys.platform.startswith("linux")
+          E = types.SimpleNamespace
+          assert gd.Viewer.resolve(E(keycode=9, keysym="Escape", char="\x1b")) == (gd.KEY_DOWN, gd.KEY_UP, 0x22)
+          assert gd.Viewer.resolve(E(keycode=23, keysym="Tab", char="\t")) == (gd.KEY_DOWN, gd.KEY_UP, 0x13)
+          assert gd.Viewer.resolve(E(keycode=10, keysym="exclam", char="!")) == (gd.PAD_DOWN, gd.PAD_UP, 0)
+          assert gd.Viewer.resolve(E(keycode=24, keysym="Q", char="Q")) == (gd.PAD_DOWN, gd.PAD_UP, 4)
+          assert len(panel_window.PANEL_CONTROLS) == 53
+          print("Linux smoke test passed!")
+          PY
+
+      - name: Build standalone Linux x86_64 Screen-Genie binary
+        run: |
+          python3 -m PyInstaller \
+            --noconfirm \
+            --onefile \
+            --name "Screen-Genie" \
+            --add-data "tools/genie_display/sp404mkii-panel.jpg:." \
+            --paths tools/genie_display \
+            --exclude-module numpy \
+            --hidden-import serial.tools.list_ports_linux \
+            tools/genie_display/genie_display.py
+          chmod +x dist/Screen-Genie
+          cat > dist/README-Linux.txt <<'EOF'
+          Screen Genie for Linux (x86_64)
+          ===============================
+          Run: ./Screen-Genie
+
+          If the SP-404MKII serial port (/dev/ttyACM0) reports Permission Denied:
+            sudo usermod -aG dialout "$USER"
+          Then log out and log back in.
+          EOF
+          tar -czf Screen-Genie-Linux.tar.gz -C dist Screen-Genie README-Linux.txt
+          ls -lh Screen-Genie-Linux.tar.gz
+
+      - name: Upload Screen-Genie-Linux.tar.gz to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ github.event.inputs.release_tag || 'screen-genie-v1' }}"
+          gh release upload "$TAG" Screen-Genie-Linux.tar.gz --clobber
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Screen-Genie-Linux
+          path: Screen-Genie-Linux.tar.gz

@@ -145,6 +145,8 @@ class VirtualPanelWindow:
         self.canvas.bind("<B1-Motion>", self._on_drag)
         self.canvas.bind("<ButtonRelease-1>", self._on_release)
         self.canvas.bind("<MouseWheel>", self._on_wheel)
+        self.canvas.bind("<Button-4>", lambda e: self._on_wheel_steps(e, 1))
+        self.canvas.bind("<Button-5>", lambda e: self._on_wheel_steps(e, -1))
 
         # Bottom tip bar
         self.info = ttk.Label(
@@ -361,8 +363,10 @@ class VirtualPanelWindow:
 
     def _on_wheel(self, event):
         steps = int(event.delta) if sys.platform == "darwin" else round(event.delta / 120)
-        if not steps:
-            return
+        if steps:
+            self._on_wheel_steps(event, steps)
+
+    def _on_wheel_steps(self, event, steps: int):
         ctrl = self._hit_test(event.x, event.y)
         if ctrl and ctrl[0] == "knob":
             knob = ctrl[1]
