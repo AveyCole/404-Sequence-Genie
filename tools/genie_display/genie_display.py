@@ -441,6 +441,7 @@ class Viewer:
         self.canvas.bind("<Configure>", self.draw)
         self.canvas.bind("<Button-1>", lambda _: self.canvas.focus_set())
         self.canvas.bind("<MouseWheel>", self.wheel)
+        self.canvas.bind("<Tab>", self.key_down)
         root.bind("<F11>", self.flip)
         root.bind("<F12>", lambda _e: self.toggle_panel_window())
         root.bind("<Control-s>", lambda _e: self.save_screenshot())
