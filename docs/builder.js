@@ -126,7 +126,7 @@ async function changeSelection() {
   catalogError = "";
   updateSelection();
   try {
-    const response = await fetch(new URL("./firmware-catalog.json?v=20261127-remote", import.meta.url));
+    const response = await fetch(new URL("./firmware-catalog.json?v=20261127-grainvol", import.meta.url));
     if (!response.ok) throw new Error();
     const result = await response.json();
     if (result.version !== 12 || !Array.isArray(result.profiles)) throw new Error();
