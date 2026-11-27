@@ -85,7 +85,7 @@ class VirtualPanelWindow:
     def __init__(self, viewer):
         self.viewer = viewer
         self.win = tk.Toplevel(viewer.root)
-        self.win.title("Virtual SP-404MKII Panel · Visual Layout & Controls")
+        self.win.title("Virtual 404 Panel · Visual Layout & Controls")
         self.win.configure(bg="#11161f")
         self.win.geometry("560x860")
         self.win.minsize(420, 640)
@@ -163,7 +163,6 @@ class VirtualPanelWindow:
         for candidate in (
             base / "sp404mkii-panel.jpg",
             Path(__file__).parent / "sp404mkii-panel.jpg",
-            Path(__file__).resolve().parents[2] / "docs" / "sp404mkii-panel.jpg",
         ):
             if candidate.is_file():
                 return Image.open(candidate).convert("RGB")
