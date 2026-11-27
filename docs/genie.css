@@ -128,6 +128,12 @@ h2 { font-size: clamp(1.8rem, 4vw, 2.7rem); line-height: 1.1; }
 }
 .genie-mode-options legend { padding: 0; color: var(--muted); font-size: .79rem; }
 .genie-mode-options label { margin-bottom: 0; font-weight: 500; }
+.boot-style-options { margin-left: 1.58rem; }
+.node-genie summary { cursor: pointer; font-weight: 650; font-size: .89rem; }
+.node-genie details .genie-mode-options { margin-top: .35rem; }
+.node-genie .workflow-options { grid-template-columns: 1fr; }
+#doom-feature-options .genie-mode-options,
+#spetc-feature-options .genie-mode-options { grid-template-columns: 1fr; margin-top: .35rem; }
 .module-device { grid-area: device; position: relative; margin: 0; z-index: 1; filter: drop-shadow(0 .9rem 1.25rem #08050ed0); }
 .module-device img {
   display: block;

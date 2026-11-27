@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#140e20">
   <meta name="description" content="Build the Genie Suite with Bounce for your Roland SP-404MKII.">
   <title>404 Sequence Genie · Firmware Builder</title>
-  <link rel="stylesheet" href="./genie.css?v=11">
+  <link rel="stylesheet" href="./genie.css?v=16">
 </head>
 <body>
 <a class="skip" href="#builder">Skip to firmware builder</a>
@@ -64,20 +64,71 @@
                 <input id="doomHyperspace" type="checkbox" checked>
                 <span>Hyperspace <small>Falls back to VHS when off</small></span>
               </label>
-              <label id="doom-styles-option" class="module-check component-suboption">
-                <input id="doomStyles" type="checkbox" checked>
-                <span>Extra startup styles <small>Graffiti, Hello, Bubble and Sketch</small></span>
-              </label>
+              <fieldset id="doom-styles-option" class="genie-mode-options boot-style-options">
+                <legend>Extra startup styles</legend>
+                <label class="module-check"><input id="doomBubble" type="checkbox" checked> Bubble</label>
+                <label class="module-check"><input id="doomSketch" type="checkbox" checked> Sketch</label>
+                <label class="module-check"><input id="doomHello" type="checkbox" checked> Hello</label>
+                <label class="module-check"><input id="doomGraffiti" type="checkbox" checked> Graffiti</label>
+              </fieldset>
               <label id="doom-help-option" class="module-check component-option">
                 <input id="doomHelp" type="checkbox" checked>
                 <span>Contextual Help <small>Hold SHIFT to show control tips</small></span>
               </label>
+              <details id="doom-feature-options" class="component-option" hidden>
+                <summary>DOOM features</summary>
+                <fieldset class="genie-mode-options">
+                  <legend class="visually-hidden">Keep these DOOM tools</legend>
+                  <label class="module-check">
+                    <input id="doomShortcuts" type="checkbox" checked>
+                    <span>Custom shortcuts <small>Run your assigned button combinations</small></span>
+                  </label>
+                  <label class="module-check">
+                    <input id="doomArp" type="checkbox" checked>
+                    <span>Arpeggiator <small>Live arps, settings, and Print ARP</small></span>
+                  </label>
+                  <label class="module-check">
+                    <input id="doomInstruments" type="checkbox" checked>
+                    <span>DOOM Instruments <small>Native instrument and kit picker, editor, and playback</small></span>
+                  </label>
+                  <label class="module-check">
+                    <input id="doomBounce" type="checkbox" checked>
+                    <span>Bounce in Place <small>Render a DOOM track or the full mix to a pad</small></span>
+                  </label>
+                  <label class="module-check">
+                    <input id="doomSidechain" type="checkbox" checked>
+                    <span>Sidechain panel <small>DOOM bus routing, compression controls, and gain display</small></span>
+                  </label>
+                  <label class="module-check">
+                    <input id="doomWaveform" type="checkbox" checked>
+                    <span>Waveform Display <small>Show the output and selected track in Grid and Mixer</small></span>
+                  </label>
+                </fieldset>
+              </details>
             </div>
             <div class="module-node node-spetc">
               <label class="module-check">
                 <input id="spetc" type="checkbox" checked>
                 <span>SP-ETC v9.53 <small>TraceListener Sound Generator and pad tools</small></span>
               </label>
+              <details id="spetc-feature-options" class="component-option" hidden>
+                <summary>SP-ETC features</summary>
+                <fieldset class="genie-mode-options">
+                  <legend class="visually-hidden">Keep these SP-ETC tools</legend>
+                  <label class="module-check">
+                    <input id="spetcPadBounce" type="checkbox" value="Pad Bounce" checked>
+                    <span>Pad Bounce <small>Render a pad through FX with hold RESAMPLE + pad</small></span>
+                  </label>
+                  <label class="module-check">
+                    <input id="spetcHiddenFx" type="checkbox" value="Hidden FX Settings" checked>
+                    <span>Hidden FX Settings <small>Extra bus and input FX parameter pages</small></span>
+                  </label>
+                  <label class="module-check">
+                    <input id="spetcPadEnvelopes" type="checkbox" value="Advanced Pad Envelopes" checked>
+                    <span>Advanced Pad Envelopes <small>Fine timing, retrigger fades, pitch and filter sweeps</small></span>
+                  </label>
+                </fieldset>
+              </details>
               <label id="note-repeat-option" class="module-check component-option">
                 <input id="noteRepeat" type="checkbox" checked>
                 <span>MPC-style note repeat <small>Clear to use Roland’s ROLL behavior</small></span>
@@ -107,6 +158,47 @@
                 <label class="module-check"><input type="checkbox" id="modeVox" checked> Vox</label>
                 <label class="module-check"><input type="checkbox" id="modeBounce" checked> Bounce</label>
               </fieldset>
+              <label id="lamp-option" class="module-check component-option">
+                <input id="genieLamp" type="checkbox" checked>
+                <span>Sequence entry lamp <small>Animation when you open Sequence Genie</small></span>
+              </label>
+              <details id="intro-options" class="component-option">
+                <summary>Mode entry animations</summary>
+                <fieldset class="genie-mode-options">
+                  <legend class="visually-hidden">Keep these animations</legend>
+                  <label class="module-check"><input id="introChord" data-mode="0" type="checkbox" checked> Chord</label>
+                  <label class="module-check"><input id="introGrain" data-mode="1" type="checkbox" checked> Grain</label>
+                  <label class="module-check"><input id="introDrum" data-mode="2" type="checkbox" checked> Drum</label>
+                  <label class="module-check"><input id="introVox" data-mode="3" type="checkbox" checked> Vox</label>
+                  <label class="module-check"><input id="introBounce" data-mode="4" type="checkbox" checked> Bounce</label>
+                </fieldset>
+              </details>
+              <fieldset id="addon-options" class="genie-mode-options workflow-options component-option">
+                <legend>Suite add-ons</legend>
+                <label class="module-check">
+                  <input id="genieScramble" type="checkbox" checked>
+                  <span>Scramble <small>SHIFT + Pad 9 rhythm, pitch, and velocity reroll with undo</small></span>
+                </label>
+                <label class="module-check">
+                  <input id="genieDisplay" type="checkbox" checked>
+                  <span>Screen Genie <small>Whole-device OLED mirror over USB (SHIFT + Pad 14)</small></span>
+                </label>
+              </fieldset>
+              <details id="workflow-options" class="component-option">
+                <summary>Sequence workflow</summary>
+                <fieldset class="genie-mode-options workflow-options">
+                  <legend class="visually-hidden">Keep these workflow features</legend>
+                  <label class="module-check"><input value="32" type="checkbox" checked>
+                    <span>Phrase slots <small>Save and recall phrases with SHIFT + Pad 8</small></span>
+                  </label>
+                  <label class="module-check"><input value="64" type="checkbox" checked>
+                    <span>Live draft editing <small>Edit the next phrase during playback</small></span>
+                  </label>
+                  <label class="module-check"><input value="128" type="checkbox" checked>
+                    <span>Batch bounce <small>Record variations to multiple pads with one command</small></span>
+                  </label>
+                </fieldset>
+              </details>
             </div>
             <label id="portrait-option" class="module-node module-check node-portrait">
               <input id="portrait" type="checkbox" checked>
@@ -132,6 +224,7 @@
       </form>
       <div class="builder-links">
         <a href="https://www.roland.com/global/support/by_product/sp-404mk2/updates_drivers/174cc2fc-ddb2-4128-87a0-848b882cdcea/">Get Roland 5.52</a>
+        <a href="https://github.com/AveyCole/404-Sequence-Genie/releases/latest/download/Screen-Genie.exe">Download Screen Genie (Windows .exe)</a>
         <a href="#install">Install the result</a>
       </div>
       <noscript><p>This builder needs JavaScript to verify and patch firmware in your browser.</p></noscript>
@@ -172,6 +265,8 @@
       <article><h3><a href="./genie-manual.html#drum">Drum</a></h3><p>Open with <kbd>Modes → Pad 3</kbd>.</p></article>
       <article><h3><a href="./genie-manual.html#vox">Vox</a></h3><p>Turn a source pad into playable chops. Open with <kbd>Modes → Pad 4</kbd>.</p></article>
       <article><h3><a href="./genie-manual.html#bounce">Bounce</a></h3><p>Play a physics sequencer and catch its notes as a phrase. Open with <kbd>Modes → Pad 5</kbd>.</p></article>
+      <article><h3>Scramble</h3><p>Hold <kbd>SHIFT + Pad 9</kbd> to scramble unlocked rhythm, pitch, or velocity (turn <kbd>CTRL 1</kbd> to set amount). Undo with <kbd>SHIFT + Pad 13</kbd>, redo with <kbd>SHIFT + Pad 10</kbd>.</p></article>
+      <article><h3><a href="https://github.com/AveyCole/404-Sequence-Genie/releases/latest/download/Screen-Genie.exe">Screen Genie</a></h3><p>Press <kbd>SHIFT + Pad 14</kbd> in Genie to mirror the entire SP-404MKII OLED live over USB to the <a href="https://github.com/AveyCole/404-Sequence-Genie/releases/latest/download/Screen-Genie.exe">Windows viewer (.exe)</a>.</p></article>
     </div>
     <p class="guide-note">Both Genie Suite builds include the Modes page. From Sequence Setup, press <kbd>Pad 15</kbd> twice to reach it. In Sequence Setup and Drum, hold <kbd>SHIFT</kbd> while turning <kbd>CTRL 1–3</kbd> to edit settings. In Grain and Bounce, use the CTRL knobs directly.</p>
   </section>
@@ -188,6 +283,6 @@
 </footer>
 <script src="./kits-data.js" defer></script>
 <script src="./doomos-patcher.js" defer></script>
-<script type="module" src="./builder.js?v=20261126-note-length"></script>
+<script type="module" src="./builder.js?v=20261127-addons"></script>
 </body>
 </html>

@@ -19,18 +19,32 @@ const doomBoot = document.querySelector("#doomBoot");
 const doomHyperspace = document.querySelector("#doomHyperspace");
 const doomHelp = document.querySelector("#doomHelp");
 const noteRepeat = document.querySelector("#noteRepeat");
-const componentChecks = [
-  [document.querySelector("#doomStyles"), document.querySelector("#doom-styles-option")],
-  [document.querySelector("#chromatic"), document.querySelector("#chromatic-option")],
-];
+const styleOptions = document.querySelector("#doom-styles-option");
+const styleChecks = [...styleOptions.querySelectorAll("input")];
+const allStyles = (1 << styleChecks.length) - 1;
+const chromatic = document.querySelector("#chromatic");
+const chromaticOption = document.querySelector("#chromatic-option");
+const lamp = document.querySelector("#genieLamp");
+const lampOption = document.querySelector("#lamp-option");
+const introOptions = document.querySelector("#intro-options");
+const introChecks = [...introOptions.querySelectorAll("input")];
+const workflowOptions = document.querySelector("#workflow-options");
+const workflowChecks = [...workflowOptions.querySelectorAll("input")];
+const addonOptions = document.querySelector("#addon-options");
+const addonChecks = [...addonOptions.querySelectorAll("input")];
 const doomBootOption = document.querySelector("#doom-boot-option");
 const doomHyperspaceOption = document.querySelector("#doom-hyperspace-option");
 const doomHelpOption = document.querySelector("#doom-help-option");
+const doomFeatureOptions = document.querySelector("#doom-feature-options");
+const doomFeatureChecks = [...doomFeatureOptions.querySelectorAll("input")];
 const noteRepeatOption = document.querySelector("#note-repeat-option");
+const spetcFeatureOptions = document.querySelector("#spetc-feature-options");
+const spetcFeatureChecks = [...spetcFeatureOptions.querySelectorAll("input")];
 const released = document.querySelector("#firmware-released");
 const modeOptions = document.querySelector("#genie-mode-options");
 const modeChecks = [...modeOptions.querySelectorAll("input")];
 const allModes = (1 << modeChecks.length) - 1;
+const suiteMarker = 0x47534d00;
 let catalog;
 let catalogError = "";
 let loadingCatalog = false;
@@ -148,11 +162,10 @@ function omittedModeSpans(layout, mask) {
 function applyModes(output, {modes, modeMask}) {
   if (!modes || modeMask === allModes) return;
   const view = new DataView(output.buffer, output.byteOffset, output.byteLength);
-  const marker = 0x47534d00;
-  if (view.getUint32(modes.offset, true) !== (marker | allModes)) {
+  if (view.getUint32(modes.offset, true) !== (suiteMarker | allModes)) {
     throw new Error("The Suite mode configuration did not match.");
   }
-  view.setUint32(modes.offset, marker | modeMask, true);
+  view.setUint32(modes.offset, suiteMarker | modeMask, true);
   for (const [offset, length] of omittedModeSpans(modes, modeMask)) {
     if (offset < 0 || length <= 0 || offset + length > output.length) {
       throw new Error("Invalid Suite mode payload bounds.");
@@ -167,12 +180,79 @@ function applyComponents(output, {components, componentMask}) {
     for (const [offset, hex] of component.writes) {
       output.set(Uint8Array.from(hex.match(/../g), byte => parseInt(byte, 16)), offset);
     }
-    const [offset, length] = component.zero;
-    if (offset < 0 || length <= 0 || offset + length > output.length) {
-      throw new Error("Invalid firmware component bounds.");
+    for (const [offset, length] of (component.zeros ?? [component.zero])) {
+      if (offset < 0 || length <= 0 || offset + length > output.length) {
+        throw new Error("Invalid firmware component bounds.");
+      }
+      output.fill(0, offset, offset + length);
     }
-    output.fill(0, offset, offset + length);
   }
+}
+
+async function applyDecorations(output, {styleVariant, styleSet, removeLamp}) {
+  if (styleVariant && styleSet) {
+    const {offset, frames: [frameOffset, size], hash, reserve} = styleSet;
+    const table = Uint8Array.from(styleVariant.table.match(/../g), byte => parseInt(byte, 16));
+    const bank = output.subarray(frameOffset, frameOffset + size);
+    const sliceBank = () => {
+      if (!reserve) return bank;
+      const [resStart, resLen] = reserve;
+      const out = new Uint8Array(size - resLen);
+      out.set(bank.subarray(0, resStart), 0);
+      out.set(bank.subarray(resStart + resLen), resStart);
+      return out;
+    };
+    const initial = sliceBank();
+    const checked = new Uint8Array(table.length + initial.length);
+    checked.set(output.subarray(offset, offset + table.length));
+    checked.set(initial, table.length);
+    if (await sha256(checked) !== hash) throw new Error("The DOOM animation bank did not match.");
+    for (const [start, length] of styleVariant.zero) {
+      if (start < 0 || length <= 0 || start + length > size) {
+        throw new Error("Invalid DOOM animation frame bounds.");
+      }
+      bank.fill(0, start, start + length);
+    }
+    checked.set(table);
+    checked.set(sliceBank(), table.length);
+    if (await sha256(checked) !== styleVariant.hash) throw new Error("The updated DOOM animation bank did not match.");
+    output.set(table, offset);
+  }
+  if (removeLamp) {
+    const {offset, size, hash} = catalog.decorations.lamp;
+    if (await sha256(output.subarray(offset, offset + size)) !== hash) {
+      throw new Error("The Sequence Genie lamp did not match.");
+    }
+    output.fill(0, offset, offset + size);
+  }
+}
+
+async function applyOptionalPayloads(output, options = []) {
+  for (const option of options) {
+    for (const {offset, size, hash, replace} of option.changes) {
+      const end = offset + size;
+      if (offset < 0 || size <= 0 || end > output.length ||
+          await sha256(output.subarray(offset, end)) !== hash) {
+        throw new Error("An optional firmware component did not match.");
+      }
+      if (replace) {
+        const bytes = Uint8Array.from(replace.match(/../g), byte => parseInt(byte, 16));
+        if (bytes.length !== size) throw new Error("Invalid firmware replacement size.");
+        output.set(bytes, offset);
+      } else {
+        output.fill(0, offset, end);
+      }
+    }
+  }
+}
+
+function applyWorkflows(output, {modes, modeMask, workflowMask}) {
+  if (!workflowMask) return;
+  const view = new DataView(output.buffer, output.byteOffset, output.byteLength);
+  if (view.getUint32(modes.offset, true) !== (suiteMarker | modeMask)) {
+    throw new Error("The Suite workflow configuration did not match.");
+  }
+  view.setUint32(modes.offset, suiteMarker | modeMask | workflowMask, true);
 }
 
 function describeUnavailable() {
@@ -196,12 +276,24 @@ function updateSelection() {
   spetc.disabled = base.value === "stock";
   doomBootOption.hidden = doomBoot.disabled = base.value !== "074";
   doomHelpOption.hidden = doomHelp.disabled = doomBoot.disabled;
+  doomFeatureOptions.hidden = doomBoot.disabled;
+  for (const check of doomFeatureChecks) check.disabled = doomFeatureOptions.hidden;
   doomHyperspaceOption.hidden = doomHyperspace.disabled = doomBoot.disabled || !doomBoot.checked;
   noteRepeatOption.hidden = noteRepeat.disabled = spetc.disabled || !spetc.checked;
-  componentChecks.forEach(([input, option], index) => {
-    option.hidden = input.disabled = index === 0 ? doomHyperspace.disabled : noteRepeat.disabled;
-  });
+  spetcFeatureOptions.hidden = noteRepeat.disabled;
+  for (const check of spetcFeatureChecks) check.disabled = spetcFeatureOptions.hidden;
+  styleOptions.hidden = styleOptions.disabled = doomHyperspace.disabled;
+  chromaticOption.hidden = chromatic.disabled = noteRepeat.disabled;
   modeOptions.hidden = modeOptions.disabled = genie.value !== "suite";
+  lampOption.hidden = lamp.disabled = modeOptions.disabled;
+  addonOptions.hidden = addonOptions.disabled = modeOptions.disabled;
+  for (const check of addonChecks) check.disabled = addonOptions.disabled;
+  workflowOptions.hidden = modeOptions.disabled;
+  for (const check of introChecks) {
+    check.disabled = modeOptions.disabled || !modeChecks[Number(check.dataset.mode)].checked;
+    check.closest("label").hidden = check.disabled;
+  }
+  introOptions.hidden = introChecks.every(check => check.disabled);
   portraitOption.hidden = portrait.disabled = base.value === "061";
   space.hidden = true;
   if (custom) {
@@ -217,17 +309,57 @@ function updateSelection() {
     };
     const profile = catalog?.profiles.find(entry =>
       Object.entries(choices).every(([name, value]) => entry[name] === value));
+    const addonsReserve = Boolean(profile?.addonsReserve);
+    styleChecks[0].disabled = styleOptions.disabled || addonsReserve;
     const modeMask = modeChecks.reduce((mask, input, i) => mask | (input.checked ? 1 << i : 0), 0);
-    const componentMask = componentChecks.reduce((mask, [input], i) =>
-      mask | (!input.disabled && !input.checked ? 1 << i : 0), 0);
-    selection = profile && {...profile, modeMask, componentMask, build: buildModules};
+    const styleMask = styleOptions.disabled ? 0 : styleChecks.reduce((mask, input, i) =>
+      mask | ((addonsReserve && i === 0) || !input.checked ? 1 << i : 0), 0);
+    const componentMask = (styleMask === allStyles ? 1 : 0) | (!chromatic.disabled && !chromatic.checked ? 2 : 0);
+    const styleSet = addonsReserve ? catalog?.decorations.stylesReserved : catalog?.decorations.styles;
+    const styleVariant = styleSet?.variants[styleMask];
+    const removeLamp = !lamp.disabled && !lamp.checked;
+    const optionalPayloads = profile?.modes ? introChecks
+      .filter(check => !check.disabled && !check.checked)
+      .map(check => profile.modes.optional[check.id]) : [];
+    const omittedAddons = profile?.modes ? addonChecks
+      .filter(check => !check.disabled && !check.checked && profile.modes.optional[check.id]) : [];
+    optionalPayloads.push(...omittedAddons.map(check => profile.modes.optional[check.id]));
+    const omittedDoomTools = doomFeatureChecks.filter(check => !check.disabled && !check.checked);
+    const omittedSpetcTools = spetcFeatureChecks.filter(check => !check.disabled && !check.checked);
+    if (profile) {
+      optionalPayloads.push(...omittedDoomTools.map(check => catalog.doomFeatures[check.id]));
+      optionalPayloads.push(...omittedSpetcTools.map(check => catalog.spetcFeatures[profile.base][check.id]));
+      if (profile.withoutInstrumentSources && omittedDoomTools.some(check => check.id === "doomInstruments")) {
+        optionalPayloads.push(profile.withoutInstrumentSources);
+      }
+    }
+    const workflowMask = profile?.modes ? workflowChecks.reduce((mask, check) =>
+      mask | (check.checked ? 0 : Number(check.value)), 0) : 0;
+    selection = profile && {
+      ...profile, modeMask, componentMask, styleVariant, styleSet, removeLamp, optionalPayloads, workflowMask, build: buildModules,
+    };
     deviceOLED.textContent = profile
       ? {suite: "GENIE SUITE", core: "SEQUENCE GENIE", none: base.value === "stock" ? "ROLAND 5.52" : "DOOM OS"}[genie.value]
       : catalog ? "CHECK BUILD" : "APP1";
-    const changes = [
-      "Graffiti, Hello, Bubble and Sketch use VHS.",
-      "Sample chromatic mode uses the baseline controls.",
-    ].filter((_, i) => componentMask & (1 << i));
+    const changes = [];
+    if (styleMask && catalog) {
+      const names = styleSet.order.filter((_, i) => styleMask & (1 << i) && !(addonsReserve && i === 0));
+      if (names.length) changes.push(`${names.join(", ")} ${names.length === 1 ? "uses" : "use"} VHS.`);
+    }
+    if (componentMask & 2) changes.push("Sample chromatic mode uses the baseline controls.");
+    if (removeLamp) changes.push("Sequence Genie opens directly to Setup.");
+    if (omittedAddons.some(check => check.id === "genieScramble")) changes.push("Scramble is off.");
+    if (omittedAddons.some(check => check.id === "genieDisplay")) changes.push("Screen Genie USB mirror is off.");
+    if (workflowMask & 128) changes.push("Bounce records one take at a time.");
+    if (omittedDoomTools.some(check => check.id === "doomShortcuts")) changes.push("Custom shortcuts are disabled.");
+    if (omittedDoomTools.some(check => check.id === "doomArp")) changes.push("The DOOM arpeggiator is disabled.");
+    if (omittedDoomTools.some(check => check.id === "doomInstruments")) {
+      changes.push("DOOM Instruments and Genie instrument playback are disabled.");
+    }
+    if (omittedDoomTools.some(check => check.id === "doomBounce")) changes.push("DOOM Bounce in Place is disabled.");
+    if (omittedDoomTools.some(check => check.id === "doomSidechain")) changes.push("The DOOM Sidechain panel is disabled.");
+    if (omittedDoomTools.some(check => check.id === "doomWaveform")) changes.push("The DOOM Waveform Display is disabled.");
+    if (omittedSpetcTools.length) changes.push(`SP-ETC features off · ${omittedSpetcTools.map(check => check.value).join(", ")}`);
     description.textContent = profile ? [profile.detail, ...changes].join(" ") :
       (catalog ? describeUnavailable() : catalogError || "Loading firmware combinations…");
     if (profile) {
@@ -240,8 +372,14 @@ function updateSelection() {
         ? omittedModeSpans(profile.modes, modeMask).reduce((total, [, length]) => total + length, 0)
         : 0;
       const extraBytes = (profile.components?.edits ?? []).reduce((total, component, i) =>
-        total + (componentMask & (1 << i) ? component.zero[1] : 0), 0);
-      const reclaimed = componentBytes + modeBytes + extraBytes;
+        total + (componentMask & (1 << i)
+          ? (component.zeros ?? [component.zero]).reduce((sum, [, length]) => sum + length, 0)
+          : 0), 0);
+      const styleBytes = (styleVariant?.zero ?? []).reduce((total, [, length]) => total + length, 0);
+      const lampBytes = removeLamp ? catalog.decorations.lamp.size : 0;
+      const optionalBytes = optionalPayloads.flatMap(option => option.changes).reduce(
+        (total, edit) => total + (edit.replace ? 0 : edit.size), 0);
+      const reclaimed = componentBytes + modeBytes + extraBytes + styleBytes + lampBytes + optionalBytes;
       released.hidden = !reclaimed;
       released.textContent = reclaimed
         ? `${count.format(reclaimed)} bytes reclaimed inside APP1 for future modules.`
@@ -265,10 +403,14 @@ async function changeSelection() {
   catalogError = "";
   updateSelection();
   try {
-    const response = await fetch(new URL("./firmware-catalog.json?v=20261126-note-length", import.meta.url));
+    const response = await fetch(new URL("./firmware-catalog.json?v=20261127-addons", import.meta.url));
     if (!response.ok) throw new Error();
     const result = await response.json();
-    if (result.version !== 5 || !Array.isArray(result.profiles) || !Number.isInteger(result.limit)) throw new Error();
+    if (result.version !== 12 || !Array.isArray(result.profiles) || !Number.isInteger(result.limit) ||
+        !result.decorations?.styles || !result.decorations?.stylesReserved || !result.decorations?.lamp ||
+        !doomFeatureChecks.every(check => result.doomFeatures?.[check.id]?.changes.length) ||
+        !["061", "074"].every(base => spetcFeatureChecks.every(check =>
+          result.spetcFeatures?.[base]?.[check.id]?.changes.length))) throw new Error();
     catalog = result;
   } catch {
     catalogError = "The firmware catalog could not be loaded. Reopen Custom module selection to retry.";
@@ -305,6 +447,9 @@ form.addEventListener("submit", async event => {
     if (selected.bytes && (output.length !== selected.bytes || await sha256(output) !== digest)) {
       throw new Error("The output does not match the catalog size or checksum.");
     }
+    await applyDecorations(output, selected);
+    await applyOptionalPayloads(output, selected.optionalPayloads);
+    applyWorkflows(output, selected);
     const url = URL.createObjectURL(new Blob([output], {type:"application/octet-stream"}));
     const link = document.createElement("a");
     link.href = url;
