@@ -81,12 +81,12 @@ async function applyOverlay(parent, patch) {
 
 const builds = {
   "074": {
-    profile: "build-08",
-    description: "Full DOOM OS 0.7.4 and SP-ETC v9.53 with all Genie modes, Screen Genie USB mirror & remote control, and the Cheddar Butt startup. Drum Genie has eight lanes.",
+    profile: "build-08-fx",
+    description: "Full DOOM OS 0.7.4 and SP-ETC v9.53 with all Genie modes, 12 new native MFX across a 4-page MFX grid (BUS 1 & 2), Screen Genie USB mirror & remote control, and the Cheddar Butt startup.",
   },
   stock: {
-    profile: "build-03",
-    description: "Roland 5.52 with all Genie modes, Screen Genie USB mirror & remote control, and the Cheddar Butt startup. Drum Genie has eight lanes.",
+    profile: "build-03-fx",
+    description: "Roland 5.52 with all Genie modes, 12 new native MFX across a 4-page MFX grid (BUS 1 & 2), Screen Genie USB mirror & remote control, and the Cheddar Butt startup.",
   },
   legacy: {
     build: buildLegacy,
@@ -100,7 +100,7 @@ async function buildPreset(source, inputHash, profile, depth = 0) {
     const parent = catalog.profiles.find(entry => entry.id === profile.parent);
     if (!parent || depth >= 2) throw new Error("Invalid parent chain for the firmware patch.");
     const image = await buildPreset(source, inputHash, parent, depth + 1);
-    return applyContainer(image, {...profile, progress: "Applying startup artwork…"});
+    return applyContainer(image, {...profile, progress: profile.progress || "Applying startup artwork…"});
   }
   if (inputHash !== stockHash) throw new Error("This build needs the original Roland 5.52 APP1.");
   if (profile.recipe === "patch") {
@@ -126,7 +126,7 @@ async function changeSelection() {
   catalogError = "";
   updateSelection();
   try {
-    const response = await fetch(new URL("./firmware-catalog.json?v=20261127-subpad", import.meta.url));
+    const response = await fetch(new URL("./firmware-catalog.json?v=20261127-fx12", import.meta.url));
     if (!response.ok) throw new Error();
     const result = await response.json();
     if (result.version !== 12 || !Array.isArray(result.profiles)) throw new Error();

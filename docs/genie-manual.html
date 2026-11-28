@@ -18,7 +18,7 @@ code{overflow-wrap:anywhere}@media print{body{background:#fff}main{max-width:non
 <main>
 <header><h1>404 Genie Manual</h1>
 <p>SP-404MKII · Current Roland 5.52-based flasher builds</p>
-<nav aria-label="Contents"><a href="./">Flasher</a><a href="#builds">Builds</a><a href="#start">Quick start</a><a href="#sequence">Sequence</a><a href="#chord">Chord</a><a href="#grain">Grain</a><a href="#drum">Drum</a><a href="#vox">Vox</a><a href="#bounce">Bounce</a><a href="#check">Troubleshooting</a></nav>
+<nav aria-label="Contents"><a href="./">Flasher</a><a href="#builds">Builds</a><a href="#start">Quick start</a><a href="#mfx">12 New MFX</a><a href="#sequence">Sequence</a><a href="#chord">Chord</a><a href="#grain">Grain</a><a href="#drum">Drum</a><a href="#vox">Vox</a><a href="#bounce">Bounce</a><a href="#check">Troubleshooting</a></nav>
 </header>
 <section id="builds"><h2>Choose a build</h2>
 <table><thead><tr><th scope="col">Flasher option</th><th scope="col">What’s included</th></tr></thead><tbody>
@@ -174,6 +174,24 @@ code{overflow-wrap:anywhere}@media print{body{background:#fff}main{max-width:non
 <p>Sequence Genie’s <strong>MIDI Out</strong> controls Bounce’s pitched floor and Plinko notes. Wall, ceiling, and ball collisions use the source assigned to their Drum Genie lane, including its own MIDI channel and note. These lanes work with the main MIDI Out set to OFF. Pad 11 records audio from the 404’s internal recorder.</p>
 <p>On DOOM Suite, BOX Pads 4–6 keep their fast rhythms under long Sound Generator releases. When all four voices are busy, Bounce and Sequence Genie shorten the oldest Genie release tail to make room for the next note.</p>
 <p>For steady quarter notes in BOX, set SYNC, bounciness to 100%, and time speed to 100%, then press Pad 2.</p>
+</section>
+<section id="mfx"><h2>12 New Native MFX &amp; 4th MFX Page</h2>
+<p>Both current Genie Suite builds add 12 custom stereo DSP effects directly into the SP-404MKII’s native MFX list and extend the grid to four pages (<strong>1/4</strong>–<strong>4/4</strong>, <strong>MFX LIST 49-64</strong>). Select them from the grid, <kbd>VALUE</kbd> encoder, or <kbd>CTRL 3</kbd> knob just like stock effects. To jump directly to Page 4 while holding <kbd>MFX</kbd>, hold <kbd>DJFX Looper + Isolator</kbd> together.</p>
+<p>The 12 new effects run on <strong>BUS 1</strong> and <strong>BUS 2</strong> (and work with Bounce in Place). Selecting them on Input FX, BUS 3, or BUS 4 safely passes audio through as Bypass without disturbing BUS 4 or project saves. Knob tweaks persist while powered on and reset to defaults on reboot.</p>
+<table><thead><tr><th scope="col">Slot / Grid</th><th scope="col">Effect &amp; Controls (CTRL 1–6)</th></tr></thead><tbody>
+<tr><th scope="row">49 · Page 3 Pad 11</th><td><strong>STOP</strong> — 24 kHz lo-fi telephone delay with dropouts. <code>TIME</code> (0–1000 ms), <code>FEEDBACK</code>, <code>MIX</code>, <code>DROPOUT</code> (wet-only; 100% gates dry too), <code>TELE</code> (300 Hz–3.4 kHz bandpass), <code>CRUSH</code> (9→4 bit).</td></tr>
+<tr><th scope="row">50 · Page 3 Pad 12</th><td><strong>Dub Delay</strong> — 2.0 s stereo tape dub delay with wow/flutter &amp; BPM sync. <code>TIME</code> (0–2000 ms), <code>FEEDBACK</code>, <code>MIX</code>, <code>TONE</code>, <code>MOD</code>, <code>SYNC</code> (OFF, 1/4, 1/8, 1/8T, 1/16, 1/32).</td></tr>
+<tr><th scope="row">51 · Page 3 Pad 13</th><td><strong>Algoverb</strong> — Smooth Freeverb-style stereo hall. <code>SIZE</code>, <code>DECAY</code>, <code>DAMP</code>, <code>MIX</code>, <code>PRE DELAY</code> (0–200 ms), <code>WIDTH</code>.</td></tr>
+<tr><th scope="row">52 · Page 3 Pad 14</th><td><strong>Gated Verb</strong> — 80s gated snare reverb. <code>SIZE</code>, <code>DAMP</code>, <code>THRESH</code> (−60..0 dB), <code>HOLD</code> (10–500 ms), <code>RELEASE</code> (5–200 ms), <code>MIX</code>.</td></tr>
+<tr><th scope="row">53 · Page 3 Pad 15</th><td><strong>Pitched Echo</strong> — 1.0 s delay with WSOLA phase-locked pitch shifter in the feedback loop. <code>TIME</code> (0–1000 ms), <code>FEEDBACK</code>, <code>PITCH</code> (−12..+12 st), <code>MIX</code>, <code>TONE</code>, <code>GRAIN</code> (20–100 ms).</td></tr>
+<tr><th scope="row">54 · Page 3 Pad 16</th><td><strong>FREEZE</strong> — 2.0 s granular capture &amp; freeze cloud. <code>GRAIN</code> (10–250 ms), <code>PITCH</code> (−12..+12 st), <code>DENSITY</code> (1–4 grains), <code>MIX</code>, <code>FREEZE</code> (&lt;50 LIVE / ≥50 FREEZE), <code>POSITN</code> (scrubs frozen audio).</td></tr>
+<tr><th scope="row">55 · Page 4 Pad 1</th><td><strong>SPRING</strong> — Dispersive 6-stage stereo spring tank reverb with transient drip. <code>DWELL</code> (0–2× soft-clip drive), <code>DECAY</code>, <code>TENSION</code>, <code>MIX</code>, <code>DAMP</code>, <code>DRIP</code>.</td></tr>
+<tr><th scope="row">56 · Page 4 Pad 2</th><td><strong>SHIMMER</strong> — Pitch-shifted ambient shimmer reverb. <code>SHIMMER</code>, <code>PITCH</code> (−12..+12 st, def +12 st), <code>SIZE</code>, <code>DECAY</code>, <code>DAMP</code>, <code>MIX</code>.</td></tr>
+<tr><th scope="row">57 · Page 4 Pad 3</th><td><strong>GEN LOSS</strong> — Broken VHS &amp; Walkman degradation. <code>WOW</code>, <code>FLUTTER</code>, <code>FAILURE</code> (oxide dropouts &amp; stereo azimuth wobble), <code>SATURATE</code>, <code>BAND</code> (Reel → VHS → Microcassette), <code>NOISE</code>.</td></tr>
+<tr><th scope="row">58 · Page 4 Pad 4</th><td><strong>CHORD RESO</strong> — 4-voice tuned modal chord comb bank. <code>ROOT</code> (C2–B3), <code>CHORD</code> (MIN, MAJ, MIN7, MAJ7, MIN9, SUS4, 5THS, OCT), <code>DECAY</code>, <code>DAMP</code>, <code>SPREAD</code>, <code>MIX</code>.</td></tr>
+<tr><th scope="row">59 · Page 4 Pad 5</th><td><strong>TRANSIENT</strong> — Dual-envelope Attack/Sustain shaper with bus glue. <code>ATTACK</code> (−100..+100%), <code>SUSTAIN</code> (−100..+100%), <code>PUNCH</code>, <code>DRIVE</code>, <code>TONE</code> (−50..+50 tilt), <code>MIX</code>.</td></tr>
+<tr><th scope="row">60 · Page 4 Pad 6</th><td><strong>MICROLOOP</strong> — Free or BPM-synced micro-looper &amp; beat stutter. <code>LENGTH</code> (15–500 ms), <code>MODE</code> (FWD, REV, PONG, HALF, DBL, R-HALF), <code>GLITCH</code>, <code>FADE</code>, <code>SYNC</code> (OFF..1/32), <code>MIX</code>.</td></tr>
+</tbody></table>
 </section>
 <section id="check"><h2>Troubleshooting</h2>
 <ul>
