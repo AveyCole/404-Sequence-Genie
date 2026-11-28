@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#140e20">
   <meta name="description" content="Build the Genie Suite with Bounce for your Roland SP-404MKII.">
-  <title>404 Sequence Genie v1.5 · Firmware Builder</title>
+  <title>404 Sequence Genie v1.6 · Firmware Builder</title>
   <link rel="stylesheet" href="./genie.css?v=16">
 </head>
 <body>
 <a class="skip" href="#builder">Skip to firmware builder</a>
 <header class="site-header">
   <nav class="wrap nav" aria-label="Main navigation">
-    <a class="brand" href="./"><span aria-hidden="true">✦</span> 404 Sequence Genie v1.5</a>
+    <a class="brand" href="./"><span aria-hidden="true">✦</span> 404 Sequence Genie v1.6</a>
     <div class="nav-links">
       <a href="#builder" aria-current="location">Builder</a>
       <a href="#install">Install</a>
@@ -40,12 +40,12 @@
         <div class="preset-field">
           <label for="version">Build selection</label>
           <select id="version" name="version" aria-describedby="build-description">
-            <option value="074" selected>DOOM OS 0.7.4 (651C) + Genie Suite v1.5 (12 New MFX)</option>
-            <option value="stock">Stock Roland 5.52 + Genie Suite v1.5 (12 New MFX)</option>
+            <option value="074" selected>DOOM OS 0.7.4 (651C) + Genie Suite v1.6 (16 Custom MFX)</option>
+            <option value="stock">Stock Roland 5.52 + Genie Suite v1.6 (16 Custom MFX)</option>
             <option value="legacy">Legacy DOOM OS 0.6.1 (ED5E)</option>
           </select>
         </div>
-        <p id="build-description" class="build-description">Full DOOM OS 0.7.4 and SP-ETC v9.53 with all Genie modes, 12 new native MFX across a 4-page MFX grid (BUS 1 &amp; 2), Screen Genie USB mirror &amp; remote control, and the Cheddar Butt startup.</p>
+        <p id="build-description" class="build-description">Full DOOM OS 0.7.4 and SP-ETC v9.53 with all Genie modes, 16 custom native MFX across a 4-page MFX grid (BUS 1 &amp; 2), Screen Genie USB mirror &amp; remote control, and the Cheddar Butt startup.</p>
         <div class="build-controls">
           <div>
             <label for="input">Select <code>SP404MKII_APP1.bin</code></label>
@@ -67,8 +67,8 @@
   </div>
 
   <section id="new-mfx" class="guide" aria-labelledby="mfx-title">
-    <div class="section-title"><h2 id="mfx-title">12 New Native MFX &amp; 4th MFX Page</h2><a href="./genie-manual.html#mfx">All 12 FX &amp; knobs <span aria-hidden="true">↗</span></a></div>
-    <p>Both Suite builds extend the native MFX list from 42 to 54 effects across four grid pages (<code>1/4</code>–<code>4/4</code>), running custom stereo DSP on <b>BUS 1</b> and <b>BUS 2</b>: <b>STOP</b>, <b>Dub Delay</b>, <b>Algoverb</b>, <b>Gated Verb</b>, <b>Pitched Echo</b>, and <b>FREEZE</b> on Page 3, plus <b>SPRING</b>, <b>SHIMMER</b>, <b>GEN LOSS</b>, <b>CHORD RESO</b>, <b>TRANSIENT</b>, and <b>MICROLOOP</b> on Page 4.</p>
+    <div class="section-title"><h2 id="mfx-title">16 Custom Native MFX &amp; 4th MFX Page</h2><a href="./genie-manual.html#mfx">All 16 FX &amp; knobs <span aria-hidden="true">↗</span></a></div>
+    <p>Both Suite builds extend the native MFX list from 42 to 58 effects across four grid pages (<code>1/4</code>–<code>4/4</code>), running custom stereo DSP on <b>BUS 1</b> and <b>BUS 2</b>: <b>STOP</b>, <b>Dub Delay</b>, <b>Algoverb</b>, <b>Gated Verb</b>, <b>Pitched Echo</b>, and <b>FREEZE</b> on Page 3, plus <b>SPRING</b>, <b>SHIMMER</b>, <b>GEN LOSS</b>, <b>CHORD RESO</b>, <b>TRANSIENT</b>, <b>MICROLOOP</b>, <b>GHOST PRINT</b>, <b>ROOM IN ROOM</b>, <b>UNDERTOW</b>, and <b>PAPER MACHINE</b> on Page 4.</p>
     <p class="guide-note">Scroll past FREEZE with <kbd>VALUE</kbd> or <kbd>CTRL 3</kbd>, or hold <kbd>MFX + DJFX Looper + Isolator</kbd> to jump straight to Page 4.</p>
   </section>
 
@@ -107,7 +107,7 @@
       <article><h3><a href="./genie-manual.html#vox">Vox</a></h3><p>Turn a source pad into playable chops. Open with <kbd>Modes → Pad 4</kbd>.</p></article>
       <article><h3><a href="./genie-manual.html#bounce">Bounce</a></h3><p>Play a physics sequencer and catch its notes as a phrase. Open with <kbd>Modes → Pad 5</kbd>.</p></article>
       <article><h3>Scramble</h3><p>Hold <kbd>SHIFT + Pad 9</kbd> to scramble unlocked rhythm, pitch, or velocity (turn <kbd>CTRL 1</kbd> to set amount). Undo with <kbd>SHIFT + Pad 13</kbd>, redo with <kbd>SHIFT + Pad 10</kbd>.</p></article>
-      <article><h3><a href="./genie-manual.html#mfx">12 New MFX</a></h3><p>STOP, Dub Delay, Algoverb, Gated Verb, Pitched Echo, FREEZE, SPRING, SHIMMER, GEN LOSS, CHORD RESO, TRANSIENT, and MICROLOOP right inside the native MFX list (BUS 1 &amp; 2).</p></article>
+      <article><h3><a href="./genie-manual.html#mfx">16 Custom MFX</a></h3><p>STOP, Dub Delay, Algoverb, Gated Verb, Pitched Echo, FREEZE, SPRING, SHIMMER, GEN LOSS, CHORD RESO, TRANSIENT, MICROLOOP, GHOST PRINT, ROOM IN ROOM, UNDERTOW, and PAPER MACHINE right inside the native MFX list (BUS 1 &amp; 2).</p></article>
       <article><h3><a href="https://github.com/AveyCole/404-Sequence-Genie/releases/latest">Screen Genie</a></h3><p>Auto-connects over USB to mirror the entire SP-404MKII OLED live, open the clickable Virtual 404 Panel (<kbd>F12</kbd>), and stream to OBS: <a href="https://github.com/AveyCole/404-Sequence-Genie/releases/latest/download/Screen-Genie.exe">Windows</a> · <a href="https://github.com/AveyCole/404-Sequence-Genie/releases/latest/download/Screen-Genie-macOS.zip">macOS (Apple Silicon)</a> · <a href="https://github.com/AveyCole/404-Sequence-Genie/releases/latest/download/Screen-Genie-Linux.tar.gz">Linux</a>.</p></article>
     </div>
     <p class="guide-note">Both Genie Suite builds include the Modes page. From Sequence Setup, press <kbd>Pad 15</kbd> twice to reach it. In Sequence Setup and Drum, hold <kbd>SHIFT</kbd> while turning <kbd>CTRL 1–3</kbd> to edit settings. In Grain and Bounce, use the CTRL knobs directly.</p>
@@ -121,10 +121,10 @@
   </aside>
 </main>
 <footer class="site-footer">
-  <div class="wrap"><span>404 Sequence Genie v1.5</span><div><a href="https://github.com/AveyCole/404-Sequence-Genie">GitHub</a><a href="https://github.com/tracelistener/SP-ETC">SP-ETC</a><a href="https://klangfeldlabs.com/doom-os/">DOOM OS</a></div></div>
+  <div class="wrap"><span>404 Sequence Genie v1.6</span><div><a href="https://github.com/AveyCole/404-Sequence-Genie">GitHub</a><a href="https://github.com/tracelistener/SP-ETC">SP-ETC</a><a href="https://klangfeldlabs.com/doom-os/">DOOM OS</a></div></div>
 </footer>
 <script src="./kits-data.js" defer></script>
 <script src="./doomos-patcher.js" defer></script>
-<script type="module" src="./builder.js?v=1.5"></script>
+<script type="module" src="./builder.js?v=1.6"></script>
 </body>
 </html>

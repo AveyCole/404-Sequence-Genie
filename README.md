@@ -1,4 +1,4 @@
-# 404 Sequence Genie v1.5
+# 404 Sequence Genie v1.6
 
 Sequence Genie extends the Sound Generator in SP-ETC v9.53 for the Roland SP-404MKII. See the [project page and browser builder](https://aveycole.github.io/404-Sequence-Genie/). The upstream SP-ETC documentation remains below.
 

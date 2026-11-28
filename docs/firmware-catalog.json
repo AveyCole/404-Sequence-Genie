@@ -19716,14 +19716,14 @@
       "doomHelp": false,
       "doomHyperspace": false,
       "noteRepeat": false,
-      "label": "Stock Genie Suite v1.5 + 12 New MFX",
+      "label": "Stock Genie Suite v1.6 + 16 Custom MFX",
       "bytes": 3665632,
-      "hash": "df631c39aa7f4002a96209d59561465ef1d960673633e8fc95f78786e003685e",
+      "hash": "44b6db8505051a4c08616fdba9e4caa222e83c35c1de5d42d55d2a7c9dffc2cd",
       "recipe": "patch",
-      "detail": "Roland 5.52 with full Genie Suite, 12 new native MFX across a 4-page MFX grid, Screen Genie USB mirror & remote control, and Cheddar Butt startup.",
-      "file": "firmware/stock-genie-fx.patch",
+      "detail": "Roland 5.52 with full Genie Suite, 16 custom native MFX across a 4-page MFX grid, Screen Genie USB mirror & remote control, and Cheddar Butt startup.",
+      "file": "firmware/stock-genie-fx-r6.patch",
       "parent": "build-02",
-      "progress": "Applying 12 new MFX, 4-page grid, and startup artwork…"
+      "progress": "Applying 16 custom MFX, 4-page grid, and startup artwork…"
     },
     {
       "id": "build-08-fx",
@@ -19735,14 +19735,14 @@
       "doomHelp": true,
       "doomHyperspace": true,
       "noteRepeat": true,
-      "label": "DOOM OS 0.7.4 + SP-ETC + Genie Suite v1.5 + 12 New MFX",
+      "label": "DOOM OS 0.7.4 + SP-ETC + Genie Suite v1.6 + 16 Custom MFX",
       "bytes": 3665744,
-      "hash": "70b200122d6e4913d1182f95a3045b229f413c3717cb9db921257d4d4086d86b",
+      "hash": "b588ca55fec2a02862ae60c37bfe222999961c62af35c359988ed96f55db39d0",
       "recipe": "patch",
-      "detail": "DOOM OS 0.7.4, SP-ETC v9.53, full Genie Suite, 12 new native MFX across a 4-page MFX grid, Screen Genie USB mirror & remote control, and Cheddar Butt startup.",
-      "file": "firmware/doom074-genie-fx.patch",
+      "detail": "DOOM OS 0.7.4, SP-ETC v9.53, full Genie Suite, 16 custom native MFX across a 4-page MFX grid, Screen Genie USB mirror & remote control, and Cheddar Butt startup.",
+      "file": "firmware/doom074-genie-fx-r6.patch",
       "parent": "build-07",
-      "progress": "Applying 12 new MFX, 4-page grid, and startup artwork…"
+      "progress": "Applying 16 custom MFX, 4-page grid, and startup artwork…"
     }
   ],
   "spetcFeatures": {

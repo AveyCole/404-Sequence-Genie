@@ -28,6 +28,10 @@ static const int16_t k_defaults[FX_NEW_COUNT][6] = {
     {125,100, 25, 15,  50,100 },
     /* 60: MICROLOOP   LENGTH(40~210ms) MODE(FWD=0) GLITCH(30%) FADE(25%) SYNC(OFF=0) MIX(50%) */
     { 40,  0, 30, 25,   0, 50 },
+    { 70, 65, 25, 50, 15, 55 },
+    { 35, 65, 55, 65, 40, 40 },
+    { 45, 25, 55, 40, 80, 55 },
+    { 60, 45, 50, 40, 35, 65 },
 };
 
 static const int16_t k_min[FX_NEW_COUNT][6] = {
@@ -43,6 +47,10 @@ static const int16_t k_min[FX_NEW_COUNT][6] = {
     {  0,  0,  0,   0,   0,  0 },
     {  0,  0,  0,   0,   0,  0 },
     {  0,  0,  0,   0,   0,  0 },
+    { 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0 },
 };
 
 static const int16_t k_max[FX_NEW_COUNT][6] = {
@@ -58,6 +66,10 @@ static const int16_t k_max[FX_NEW_COUNT][6] = {
     {  23,  7, 100, 100, 100, 100 },
     { 200,200, 100, 100, 100, 100 },
     { 100,  5, 100, 100,   5, 100 },
+    { 100, 100, 100, 100, 100, 100 },
+    { 100, 100, 100, 100, 100, 100 },
+    { 100, 100, 100, 100, 100, 100 },
+    { 100, 100, 100, 100, 100, 100 },
 };
 
 void fx_ensure_init(void) {
@@ -96,7 +108,17 @@ static void fx_refresh_bpm(void) {
     }
 }
 
-/* Called from fx_dt1_hook when FxType (0x7E..0x82) is written for slot 0..4 */
+/* The UI keeps the chosen effect even when the transport sends Bypass. */
+static uint32_t fx_selected_on_bus(uint32_t slot) {
+    return ((volatile const uint16_t *)(SYSPRM_ADDR + 0xc4u))[slot];
+}
+
+/* The stock effect selector reads 0x276 here. The separate BMC bus
+ * enable field can remain zero when its effect type is Bypass. */
+static uint32_t fx_bus_enabled(unsigned bus) {
+    return *(volatile const uint16_t *)(SYSPRM_ADDR + 0x92u + 2u * bus);
+}
+
 uint32_t fx_on_select(uint32_t slot, uint32_t effect) {
     fx_ensure_init();
     fx_refresh_bpm();
@@ -298,8 +320,8 @@ void fx_process_block(int32_t *tx_buf, int32_t *stems_buf) {
     g_fx.block_count++;
 
     /* Fast path: if neither BUS 1 nor BUS 2 runs a new i.MX FX, bit-identical passthrough */
-    uint32_t fx0 = g_fx.bus[0].active_fx;
-    uint32_t fx1 = g_fx.bus[1].active_fx;
+    const uint32_t selected[2] = {fx_selected_on_bus(1), fx_selected_on_bus(2)};
+    uint32_t fx0 = selected[0], fx1 = selected[1];
     if (fx0 < FX_STOCK_COUNT && fx1 < FX_STOCK_COUNT) {
         return;
     }
@@ -317,11 +339,18 @@ void fx_process_block(int32_t *tx_buf, int32_t *stems_buf) {
 
     for (uint32_t b = 0; b < FX_AUDIO_BUSES; ++b) {
         fx_bus_ctrl_t *bc = &g_fx.bus[b];
-        uint32_t fx = bc->active_fx;
+        uint32_t fx = selected[b];
+        if (!fx_bus_enabled(b)) {
+            bc->loaded_fx = 0;
+            continue;
+        }
         if (fx < FX_STOCK_COUNT || fx >= FX_TOTAL_COUNT || bc->bypassed) {
             continue;
         }
         void *arena = (void *)(FX_ARENA_BASE + b * FX_BUS_ARENA_SIZE);
+        for (uint32_t k = 0; k < 6; ++k) {
+            bc->target[k] = g_fx.val[b + 1][fx - FX_STOCK_COUNT][k];
+        }
         if (bc->loaded_fx != fx) {
             for (uint32_t k = 0; k < 6; ++k) {
                 bc->smooth[k] = (float)bc->target[k];
@@ -370,7 +399,7 @@ void fx_process_block(int32_t *tx_buf, int32_t *stems_buf) {
         if ((fx == FX_FREEZE || fx == FX_SPRING) && bc->target[3] == 0 && bc->smooth[3] < 0.2f) {
             continue;
         }
-        if ((fx == FX_SHIMMER || fx == FX_CHORD_RESO || fx == FX_TRANSIENT || fx == FX_MICROLOOP)
+        if ((fx == FX_SHIMMER || fx == FX_CHORD_RESO || fx == FX_TRANSIENT || fx >= FX_MICROLOOP)
             && bc->target[5] == 0 && bc->smooth[5] < 0.2f) {
             continue;
         }
@@ -396,7 +425,7 @@ void fx_process_block(int32_t *tx_buf, int32_t *stems_buf) {
         int newest = -1;
         uint32_t best_seq = 0;
         for (uint32_t b = 0; b < FX_AUDIO_BUSES; ++b) {
-            if (g_fx.bus[b].active_fx >= FX_STOCK_COUNT && !g_fx.bus[b].bypassed) {
+            if (fx_bus_enabled(b) && selected[b] >= FX_STOCK_COUNT && selected[b] < FX_TOTAL_COUNT && !g_fx.bus[b].bypassed) {
                 if (g_fx.bus[b].select_seq >= best_seq) {
                     best_seq = g_fx.bus[b].select_seq;
                     newest = (int)b;
@@ -409,7 +438,7 @@ void fx_process_block(int32_t *tx_buf, int32_t *stems_buf) {
         }
     } else if (elapsed < FX_CYC_LO) {
         for (uint32_t b = 0; b < FX_AUDIO_BUSES; ++b) {
-            if (g_fx.bus[b].bypassed && g_fx.bus[b].active_fx >= FX_STOCK_COUNT) {
+            if (g_fx.bus[b].bypassed && selected[b] >= FX_STOCK_COUNT) {
                 g_fx.bus[b].bypassed = 0u;
                 break;
             }

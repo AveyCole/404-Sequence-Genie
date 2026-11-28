@@ -168,6 +168,38 @@ NEW_EFFECTS = [
         ("SYNC",     0,   5,   0),   # OFF/1/4/1/8/1/8T/1/16/1/32
         ("MIX",      0, 100,  50),   # 0..100% wet (0 = exact passthrough)
     ]),
+    (61, "GHOST PRINT", [
+        ("IMPRINT", 0, 100, 70),
+        ("DECAY", 0, 100, 65),
+        ("SMEAR", 0, 100, 25),
+        ("PITCH", 0, 100, 50),
+        ("GATE", 0, 100, 15),
+        ("MIX", 0, 100, 55),
+    ]),
+    (62, "ROOM IN ROOM", [
+        ("INNER", 0, 100, 35),
+        ("OUTER", 0, 100, 65),
+        ("COUPLE", 0, 100, 55),
+        ("DECAY", 0, 100, 65),
+        ("DAMP", 0, 100, 40),
+        ("MIX", 0, 100, 40),
+    ]),
+    (63, "UNDERTOW", [
+        ("SENSE", 0, 100, 45),
+        ("RISE", 0, 100, 25),
+        ("MEMORY", 0, 100, 55),
+        ("FILTER", 0, 100, 40),
+        ("DUCK", 0, 100, 80),
+        ("MIX", 0, 100, 55),
+    ]),
+    (64, "PAPER MACHINE", [
+        ("MATERIAL", 0, 100, 60),
+        ("SIZE", 0, 100, 45),
+        ("RATTLE", 0, 100, 50),
+        ("DRIVE", 0, 100, 40),
+        ("WEAR", 0, 100, 35),
+        ("MIX", 0, 100, 65),
+    ]),
 ]
 
 
@@ -393,7 +425,7 @@ def build_relocated_tables(rt, base_flash, include_fde_count=False):
     stock_maxs = list(struct.unpack("<627i", rt.read(0x801AC830, 627 * 4)))
     if stock_maxs[127] != 48:
         raise ValueError(f"Expected stock max_table[127] == 48, got {stock_maxs[127]}")
-    stock_maxs[127] = 60
+    stock_maxs[127] = 64
     for v in stock_maxs + new_maxs:
         buf.extend(struct.pack("<i", v))
 
@@ -577,17 +609,22 @@ def build_new_fx(in_path, out_path, zig_path, mode="doom", passthrough_only=Fals
         print(f"Repointed {n_fde} fx_deep_edit movw/movt pairs (expected 18)")
 
     # 3. Update stock max_table[127] in place as well (belt-and-suspenders: 48 -> 60)
-    patch_exact(image, rows, 0x801ACA2C, struct.pack("<I", 48), struct.pack("<I", 60), "max_table[127]")
+    patch_exact(image, rows, 0x801ACA2C, struct.pack("<I", 48), struct.pack("<I", 64), "max_table[127]")
+
+    # Keep Roland's bus enable in sync even when native MFX use BMC
+    # type 0. The selector otherwise skips the enable for IDs above 48.
+    patch_exact(image, rows, 0x800D1304, bytes.fromhex("3028"),
+                bytes.fromhex("4028"), "native_fx_bus_enable_bound")
 
     # 4. Update grid/knob/notify/encoder bounds for 54-entry 4-page grid (indices 0..53 = 0x00..0x35)
     for addr in (0x80145E38, 0x80145E4C, 0x80145E60, 0x80145E74, 0x80145E88, 0x80145E9C):
-        patch_exact(image, rows, addr, bytes.fromhex("292a"), bytes.fromhex("352a"), f"grid_draw_r2@{addr:#x}")
-    patch_exact(image, rows, 0x80145F58, bytes.fromhex("2928"), bytes.fromhex("3528"), "grid_draw_r0")
-    patch_exact(image, rows, 0x801472AA, bytes.fromhex("292d"), bytes.fromhex("352d"), "grid_select_r5")
+        patch_exact(image, rows, addr, bytes.fromhex("292a"), bytes.fromhex("392a"), f"grid_draw_r2@{addr:#x}")
+    patch_exact(image, rows, 0x80145F58, bytes.fromhex("2928"), bytes.fromhex("3928"), "grid_draw_r0")
+    patch_exact(image, rows, 0x801472AA, bytes.fromhex("292d"), bytes.fromhex("392d"), "grid_select_r5")
     # CTRL 3 knob multiplier on MFX grid = grid_entries - 1 = 54 - 1 = 53 = 0x35 (Rule 7!)
-    patch_exact(image, rows, 0x80147A58, bytes.fromhex("2920"), bytes.fromhex("3520"), "knob_scale_mult")
+    patch_exact(image, rows, 0x80147A58, bytes.fromhex("2920"), bytes.fromhex("3920"), "knob_scale_mult")
     # Post-apply notify loop count = 54 = 0x36
-    patch_exact(image, rows, 0x801348C2, bytes.fromhex("2a2e"), bytes.fromhex("362e"), "notify_loop_bound")
+    patch_exact(image, rows, 0x801348C2, bytes.fromhex("2a2e"), bytes.fromhex("3a2e"), "notify_loop_bound")
 
     # 4a. Extend MFX Grid from 3 pages (48 cells) to 4 pages (64 cells, Pages 1/4..4/4)!
     # (1) Grid draw page->base offset: r7 = (r5 - 1) << 4 (0, 16, 32, 48)
@@ -624,7 +661,7 @@ def build_new_fx(in_path, out_path, zig_path, mode="doom", passthrough_only=Fals
         "cmp r2, r1\n"
         "beq done\n"
         "adds r5, #1\n"
-        "cmp r5, #54\n"
+        "cmp r5, #58\n"
         "blo loop\n"
         "mov.w r5, #-1\n"
         "done: b.w 0x801471f6\n",
@@ -632,7 +669,7 @@ def build_new_fx(in_path, out_path, zig_path, mode="doom", passthrough_only=Fals
     )
     patch_exact(image, rows, 0x80146FFC,
                 rt_in.read(0x80146FFC, len(enc_loop_146ffc)), enc_loop_146ffc, "mfx_encoder_search")
-    patch_exact(image, rows, 0x801471F8, bytes.fromhex("292fa8bf2927"), bytes.fromhex("352fa8bf3527"), "mfx_encoder_clamp")
+    patch_exact(image, rows, 0x801471F8, bytes.fromhex("292fa8bf2927"), bytes.fromhex("392fa8bf3927"), "mfx_encoder_clamp")
 
     # (B) EFX VALUE encoder stepper 1 (0x8006EB00): search r0=T3_alt'[0..53] for r4 -> r1 (or 0), b 0x8006ED18
     step1_loop = asm(
@@ -641,15 +678,15 @@ def build_new_fx(in_path, out_path, zig_path, mode="doom", passthrough_only=Fals
         "cmp r2, r4\n"
         "beq done\n"
         "adds r1, #1\n"
-        "cmp r1, #54\n"
+        "cmp r1, #58\n"
         "blo loop\n"
         "movs r1, #0\n"
         "done: b.w 0x8006ed18\n",
         0x8006EB22,
     )
     patch_exact(image, rows, 0x8006EB22, rt_in.read(0x8006EB22, len(step1_loop)), step1_loop, "efx_step1_search")
-    patch_exact(image, rows, 0x8006ED28, bytes.fromhex("2929a8bf2921"), bytes.fromhex("3529a8bf3521"), "efx_step1_clamp")
-    patch_exact(image, rows, 0x8006ED34, bytes.fromhex("3029"), bytes.fromhex("3c29"), "efx_step1_maxid")
+    patch_exact(image, rows, 0x8006ED28, bytes.fromhex("2929a8bf2921"), bytes.fromhex("3929a8bf3921"), "efx_step1_clamp")
+    patch_exact(image, rows, 0x8006ED34, bytes.fromhex("3029"), bytes.fromhex("4029"), "efx_step1_maxid")
 
     # (C) EFX VALUE encoder stepper 2 (0x8006ED40): search r1=T3'[0..53] for r0 -> r2 (or 0), b 0x8006EF4C
     step2_loop = asm(
@@ -658,15 +695,15 @@ def build_new_fx(in_path, out_path, zig_path, mode="doom", passthrough_only=Fals
         "cmp ip, r0\n"
         "beq done\n"
         "adds r2, #1\n"
-        "cmp r2, #54\n"
+        "cmp r2, #58\n"
         "blo loop\n"
         "movs r2, #0\n"
         "done: b.w 0x8006ef4c\n",
         0x8006ED56,
     )
     patch_exact(image, rows, 0x8006ED56, rt_in.read(0x8006ED56, len(step2_loop)), step2_loop, "efx_step2_search")
-    patch_exact(image, rows, 0x8006EF5A, bytes.fromhex("292aa8bf2922"), bytes.fromhex("352aa8bf3522"), "efx_step2_clamp")
-    patch_exact(image, rows, 0x8006EF66, bytes.fromhex("2f2b"), bytes.fromhex("3b2b"), "efx_step2_maxid")
+    patch_exact(image, rows, 0x8006EF5A, bytes.fromhex("292aa8bf2922"), bytes.fromhex("392aa8bf3922"), "efx_step2_clamp")
+    patch_exact(image, rows, 0x8006EF66, bytes.fromhex("2f2b"), bytes.fromhex("3f2b"), "efx_step2_maxid")
 
     # (D) MFX screen current-page highlight lookup (0x80146B4C): search r2=T3'[0..53] for r0 -> r1 (or -1), b 0x80146D02
     page_loop = asm(
@@ -675,7 +712,7 @@ def build_new_fx(in_path, out_path, zig_path, mode="doom", passthrough_only=Fals
         "cmp r3, r0\n"
         "beq done\n"
         "adds r1, #1\n"
-        "cmp r1, #54\n"
+        "cmp r1, #58\n"
         "blo loop\n"
         "mov.w r1, #-1\n"
         "done: b.w 0x80146d02\n",
@@ -759,11 +796,11 @@ def build_new_fx(in_path, out_path, zig_path, mode="doom", passthrough_only=Fals
 
     # Capstone verify every patched bound, Page-4 patch & jump
     for addr, exp_mnem, exp_op in [
-        (0x80145E38, "cmp", "r2, #0x35"),
-        (0x80145F58, "cmp", "r0, #0x35"),
-        (0x801472AA, "cmp", "r5, #0x35"),
-        (0x80147A58, "movs", "r0, #0x35"),
-        (0x801348C2, "cmp", "r6, #0x36"),
+        (0x80145E38, "cmp", "r2, #0x39"),
+        (0x80145F58, "cmp", "r0, #0x39"),
+        (0x801472AA, "cmp", "r5, #0x39"),
+        (0x80147A58, "movs", "r0, #0x39"),
+        (0x801348C2, "cmp", "r6, #0x3a"),
         (0x80146138, "movs", "r3, #4"),
         (0x80146240, "cmp", "r3, #4"),
         (0x8014690C, "cmp", "r0, #4"),

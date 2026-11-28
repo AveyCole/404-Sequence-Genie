@@ -82,11 +82,11 @@ async function applyOverlay(parent, patch) {
 const builds = {
   "074": {
     profile: "build-08-fx",
-    description: "Full DOOM OS 0.7.4 and SP-ETC v9.53 with all Genie modes, 12 new native MFX across a 4-page MFX grid (BUS 1 & 2), Screen Genie USB mirror & remote control, and the Cheddar Butt startup.",
+    description: "Full DOOM OS 0.7.4 and SP-ETC v9.53 with all Genie modes, 16 custom native MFX across a 4-page MFX grid (BUS 1 & 2), Screen Genie USB mirror & remote control, and the Cheddar Butt startup.",
   },
   stock: {
     profile: "build-03-fx",
-    description: "Roland 5.52 with all Genie modes, 12 new native MFX across a 4-page MFX grid (BUS 1 & 2), Screen Genie USB mirror & remote control, and the Cheddar Butt startup.",
+    description: "Roland 5.52 with all Genie modes, 16 custom native MFX across a 4-page MFX grid (BUS 1 & 2), Screen Genie USB mirror & remote control, and the Cheddar Butt startup.",
   },
   legacy: {
     build: buildLegacy,
@@ -126,7 +126,7 @@ async function changeSelection() {
   catalogError = "";
   updateSelection();
   try {
-    const response = await fetch(new URL("./firmware-catalog.json?v=1.5", import.meta.url));
+    const response = await fetch(new URL("./firmware-catalog.json?v=1.6", import.meta.url));
     if (!response.ok) throw new Error();
     const result = await response.json();
     if (result.version !== 12 || !Array.isArray(result.profiles)) throw new Error();

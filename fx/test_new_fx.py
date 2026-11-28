@@ -210,16 +210,16 @@ def test_2_knob_sweep_and_grid(emu):
         seen_fx.append(fx_id)
 
     assert seen_grid[0] == 0, f"knob 0 -> grid {seen_grid[0]}"
-    assert seen_grid[127] == 53, f"knob 127 -> grid {seen_grid[127]} (expected 53!)"
+    assert seen_grid[127] == 57, f"knob 127 -> grid {seen_grid[127]} (expected 53!)"
     assert seen_grid == sorted(seen_grid), "Grid mapping not monotonic!"
-    assert set(seen_grid) == set(range(54)), f"Missing grid slots: {set(range(54)) - set(seen_grid)}"
-    assert seen_fx[127] == 60, f"knob 127 -> fx {seen_fx[127]} (expected 60 MICROLOOP!)"
-    for fx_id in range(49, 61):
+    assert set(seen_grid) == set(range(58)), f"Missing grid slots: {set(range(58)) - set(seen_grid)}"
+    assert seen_fx[127] == 64, f"knob 127 -> fx {seen_fx[127]} (expected 60 MICROLOOP!)"
+    for fx_id in range(49, 65):
         assert fx_id in seen_fx, f"FX {fx_id} unreachable by CTRL 3 knob!"
     assert 0 not in seen_fx, "CTRL 3 knob wrapped to Bypass (0)!"
 
     # Test Notify loop 0x801348B4..0x801348D0 finds all 12 new FX at grid 42..53
-    for expected_g, fx_id in enumerate(range(49, 61), start=42):
+    for expected_g, fx_id in enumerate(range(49, 65), start=42):
         emu.uc.reg_write(UC_ARM_REG_R5, fx_id)
         emu.uc.reg_write(UC_ARM_REG_SP, STACK_TOP)
         emu.uc.emu_start(0x801348B4 | 1, 0x801348D0, count=5000)
@@ -227,8 +227,8 @@ def test_2_knob_sweep_and_grid(emu):
         assert got_g == expected_g, f"Notify loop for FX {fx_id}: got {got_g}, expected {expected_g}"
 
     # Test MFX List VALUE encoder (0x80146FC0): stepping +1 from 13 -> 49..60 -> 60
-    seq = [13] + list(range(49, 61))
-    exp_seq = list(range(49, 61)) + [60]
+    seq = [13] + list(range(49, 65))
+    exp_seq = list(range(49, 65)) + [64]
     for cur_fx, exp_next in zip(seq, exp_seq):
         emu.uc.reg_write(UC_ARM_REG_R8, t3_base)
         emu.uc.reg_write(UC_ARM_REG_R1, cur_fx)
@@ -240,12 +240,12 @@ def test_2_knob_sweep_and_grid(emu):
         assert next_fx == exp_next, f"MFX encoder +1 from {cur_fx}: got {next_fx}, expected {exp_next}"
 
     # Test EFX stepper 2 (0x8006ED40): stepping +1 from 13 -> 49..60 -> 60, and -1 from 60 -> 59
-    for cur_fx, delta, exp in [(13, 1, 49), (54, 1, 55), (55, 1, 56), (56, 1, 57), (57, 1, 58), (58, 1, 59), (59, 1, 60), (60, 1, 60), (60, -1, 59)]:
+    for cur_fx, delta, exp in [(13, 1, 49), (54, 1, 55), (55, 1, 56), (56, 1, 57), (57, 1, 58), (58, 1, 59), (59, 1, 60), (60, 1, 61), (61, 1, 62), (62, 1, 63), (63, 1, 64), (64, 1, 64), (60, -1, 59)]:
         got = emu.call(0x8006ED40, 0, cur_fx, delta)
         assert got == exp, f"0x8006ED40({cur_fx}, {delta:+d}) = {got}, expected {exp}"
 
     # Test MFX screen page highlight (0x80146B44) -> idx-to-page (0x80146D08) & pad-LED lookup (0x80026492) for FX 49..60
-    for expected_g, fx_id in enumerate(range(49, 61), start=42):
+    for expected_g, fx_id in enumerate(range(49, 65), start=42):
         emu.uc.reg_write(UC_ARM_REG_R0, fx_id)
         emu.uc.reg_write(UC_ARM_REG_SP, STACK_TOP)
         emu.uc.emu_start(0x80146B44 | 1, 0x80146D02, count=5000)
@@ -269,7 +269,7 @@ def test_2_knob_sweep_and_grid(emu):
         assert emu.uc.reg_read(UC_ARM_REG_R7) == (page - 1) * 16, f"Grid draw base for page {page} wrong"
 
     # (2) Header active-FX base offset @ 0x801460EA..0x80146112: page=4, pads 0..5 -> FX 55..60!
-    for pad_i, exp_fx in enumerate(range(55, 61)):
+    for pad_i, exp_fx in enumerate(range(55, 65)):
         emu.uc.reg_write(UC_ARM_REG_R5, 4)
         emu.uc.reg_write(UC_ARM_REG_R6, pad_i)
         emu.uc.reg_write(UC_ARM_REG_SP, STACK_TOP)
@@ -349,7 +349,7 @@ def test_4_dt1_and_fde(emu, mode="doom"):
 
     # 1. Select FX 49..60 on every slot 0..4 -> BMC MUST see value 0 (Bypass)
     for slot in range(5):
-        for fx_id in range(49, 61):
+        for fx_id in range(49, 65):
             bmc_dt1.clear()
             emu.call(0x800D8118, BMC, 0x7E + slot, 0, fx_id)
             assert bmc_dt1 == [(0x7E + slot, 0, 0)], f"slot {slot} fx {fx_id} sent wrong DT1: {bmc_dt1}"
@@ -361,7 +361,7 @@ def test_4_dt1_and_fde(emu, mode="doom"):
 
     # 3. Direct DT1 call for all 72 new param IDs 627..698 -> MUST be swallowed (0 BMC frames)
     bmc_dt1.clear()
-    for pid in range(627, 699):
+    for pid in range(627, 723):
         emu.call(0x800D8118, BMC, pid, 1, 42)
     assert bmc_dt1 == [], f"New param IDs leaked to BMC: {bmc_dt1}"
 
@@ -370,7 +370,7 @@ def test_4_dt1_and_fde(emu, mode="doom"):
         emu.uc.reg_write(UC_ARM_REG_SP, STACK_TOP)
         emu.uc.emu_start(0x83FE2092 | 1, 0x83FE209A, count=100)
         fde_cnt_base = emu.uc.reg_read(UC_ARM_REG_R1)
-        assert list(emu.uc.mem_read(fde_cnt_base + 49, 12)) == [0] * 12, "fde_count[49..60] non-zero!"
+        assert list(emu.uc.mem_read(fde_cnt_base + 49, 16)) == [0] * 16, "fde_count[49..60] non-zero!"
 
     emu.hooks.pop(0x800D8122, None)
     print(f"  PASS: FX 49..60 remap to BMC Bypass (0), stock FX pass untouched, IDs 627..698 swallowed ({mode}).")

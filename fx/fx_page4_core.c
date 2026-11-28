@@ -222,7 +222,18 @@ typedef union {
 
 static page4_state_u s_p4[FX_AUDIO_BUSES] __attribute__((section(".fx_bss")));
 
+#include "fx_atmosphere.inc"
+
 void fx_page4_reset(uint32_t bus_idx, uint32_t fx_id, void *arena) {
+    if (fx_id >= FX_GHOST_PRINT) {
+        atmosphere_t *state = arena;
+        /* Clear only metadata. The history is guarded by valid. */
+        volatile unsigned char *byte = (volatile unsigned char *)&state->filter;
+        for (unsigned i = 0; i < sizeof(*state)-sizeof(state->history); i++)
+            byte[i] = 0;
+        return;
+    }
+
     (void)arena;
     if (bus_idx >= FX_AUDIO_BUSES) return;
     uint32_t *p = (uint32_t *)&s_p4[bus_idx];
@@ -916,6 +927,10 @@ static void process_microloop(microloop_state_t *st, microloop_arena_t *ar, cons
 void fx_page4_process(uint32_t bus_idx, uint32_t fx_id, fx_bus_ctrl_t *ctrl,
                       void *arena, float *buf_l, float *buf_r, uint32_t bpm100) {
     if (bus_idx >= FX_AUDIO_BUSES) return;
+    if (fx_id >= FX_GHOST_PRINT) {
+        atmosphere_process(fx_id, ctrl, arena, buf_l, buf_r);
+        return;
+    }
     switch (fx_id) {
     case FX_SHIMMER:
         process_shimmer(&s_p4[bus_idx].shimmer, (shimmer_arena_t *)arena, ctrl, buf_l, buf_r);

@@ -2,7 +2,7 @@
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>404 Genie Manual · v1.5</title>
+<title>404 Genie Manual · v1.6</title>
 <style>
 :root{color-scheme:light;--ink:#241b29;--accent:#652887;--paper:#fbf8fc;--line:#ddcfdf}
 *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:1rem/1.55 system-ui,sans-serif}
@@ -16,9 +16,9 @@ aside{padding:.6rem 1rem;background:#eee4f2;border-left:.25rem solid var(--accen
 code{overflow-wrap:anywhere}@media print{body{background:#fff}main{max-width:none;padding:0}nav{display:none}h2,h3{break-after:avoid}tr{break-inside:avoid}}
 </style>
 <main>
-<header><h1>404 Genie Manual · v1.5</h1>
-<p>SP-404MKII · 404 Sequence Genie v1.5 (Roland 5.52-based flasher builds)</p>
-<nav aria-label="Contents"><a href="./">Flasher</a><a href="#builds">Builds</a><a href="#start">Quick start</a><a href="#mfx">12 New MFX</a><a href="#sequence">Sequence</a><a href="#chord">Chord</a><a href="#grain">Grain</a><a href="#drum">Drum</a><a href="#vox">Vox</a><a href="#bounce">Bounce</a><a href="#check">Troubleshooting</a></nav>
+<header><h1>404 Genie Manual · v1.6</h1>
+<p>SP-404MKII · 404 Sequence Genie v1.6 (Roland 5.52-based flasher builds)</p>
+<nav aria-label="Contents"><a href="./">Flasher</a><a href="#builds">Builds</a><a href="#start">Quick start</a><a href="#mfx">16 Custom MFX</a><a href="#sequence">Sequence</a><a href="#chord">Chord</a><a href="#grain">Grain</a><a href="#drum">Drum</a><a href="#vox">Vox</a><a href="#bounce">Bounce</a><a href="#check">Troubleshooting</a></nav>
 </header>
 <section id="builds"><h2>Choose a build</h2>
 <table><thead><tr><th scope="col">Flasher option</th><th scope="col">What’s included</th></tr></thead><tbody>
@@ -175,9 +175,9 @@ code{overflow-wrap:anywhere}@media print{body{background:#fff}main{max-width:non
 <p>On DOOM Suite, BOX Pads 4–6 keep their fast rhythms under long Sound Generator releases. When all four voices are busy, Bounce and Sequence Genie shorten the oldest Genie release tail to make room for the next note.</p>
 <p>For steady quarter notes in BOX, set SYNC, bounciness to 100%, and time speed to 100%, then press Pad 2.</p>
 </section>
-<section id="mfx"><h2>12 New Native MFX &amp; 4th MFX Page</h2>
-<p>Both current Genie Suite builds add 12 custom stereo DSP effects directly into the SP-404MKII’s native MFX list and extend the grid to four pages (<strong>1/4</strong>–<strong>4/4</strong>, <strong>MFX LIST 49-64</strong>). Select them from the grid, <kbd>VALUE</kbd> encoder, or <kbd>CTRL 3</kbd> knob just like stock effects. To jump directly to Page 4 while holding <kbd>MFX</kbd>, hold <kbd>DJFX Looper + Isolator</kbd> together.</p>
-<p>The 12 new effects run on <strong>BUS 1</strong> and <strong>BUS 2</strong> (and work with Bounce in Place). Selecting them on Input FX, BUS 3, or BUS 4 safely passes audio through as Bypass without disturbing BUS 4 or project saves. Knob tweaks persist while powered on and reset to defaults on reboot.</p>
+<section id="mfx"><h2>16 Custom Native MFX &amp; 4th MFX Page</h2>
+<p>Both current Genie Suite builds add 16 custom stereo DSP effects directly into the SP-404MKII’s native MFX list and extend the grid to four pages (<strong>1/4</strong>–<strong>4/4</strong>, <strong>MFX LIST 49-64</strong>). Select them from the grid, <kbd>VALUE</kbd> encoder, or <kbd>CTRL 3</kbd> knob just like stock effects. To jump directly to Page 4 while holding <kbd>MFX</kbd>, hold <kbd>DJFX Looper + Isolator</kbd> together.</p>
+<p>The 16 custom effects run on <strong>BUS 1</strong> and <strong>BUS 2</strong> (and work with Bounce in Place). Selecting them on Input FX, BUS 3, or BUS 4 safely passes audio through as Bypass without disturbing BUS 4 or project saves. Knob tweaks persist while powered on and reset to defaults on reboot.</p>
 <table><thead><tr><th scope="col">Slot / Grid</th><th scope="col">Effect &amp; Controls (CTRL 1–6)</th></tr></thead><tbody>
 <tr><th scope="row">49 · Page 3 Pad 11</th><td><strong>STOP</strong> — 24 kHz lo-fi telephone delay with dropouts. <code>TIME</code> (0–1000 ms), <code>FEEDBACK</code>, <code>MIX</code>, <code>DROPOUT</code> (wet-only; 100% gates dry too), <code>TELE</code> (300 Hz–3.4 kHz bandpass), <code>CRUSH</code> (9→4 bit).</td></tr>
 <tr><th scope="row">50 · Page 3 Pad 12</th><td><strong>Dub Delay</strong> — 2.0 s stereo tape dub delay with wow/flutter &amp; BPM sync. <code>TIME</code> (0–2000 ms), <code>FEEDBACK</code>, <code>MIX</code>, <code>TONE</code>, <code>MOD</code>, <code>SYNC</code> (OFF, 1/4, 1/8, 1/8T, 1/16, 1/32).</td></tr>
@@ -191,6 +191,10 @@ code{overflow-wrap:anywhere}@media print{body{background:#fff}main{max-width:non
 <tr><th scope="row">58 · Page 4 Pad 4</th><td><strong>CHORD RESO</strong> — 4-voice tuned modal chord comb bank. <code>ROOT</code> (C2–B3), <code>CHORD</code> (MIN, MAJ, MIN7, MAJ7, MIN9, SUS4, 5THS, OCT), <code>DECAY</code>, <code>DAMP</code>, <code>SPREAD</code>, <code>MIX</code>.</td></tr>
 <tr><th scope="row">59 · Page 4 Pad 5</th><td><strong>TRANSIENT</strong> — Dual-envelope Attack/Sustain shaper with bus glue. <code>ATTACK</code> (−100..+100%), <code>SUSTAIN</code> (−100..+100%), <code>PUNCH</code>, <code>DRIVE</code>, <code>TONE</code> (−50..+50 tilt), <code>MIX</code>.</td></tr>
 <tr><th scope="row">60 · Page 4 Pad 6</th><td><strong>MICROLOOP</strong> — Free or BPM-synced micro-looper &amp; beat stutter. <code>LENGTH</code> (15–500 ms), <code>MODE</code> (FWD, REV, PONG, HALF, DBL, R-HALF), <code>GLITCH</code>, <code>FADE</code>, <code>SYNC</code> (OFF..1/32), <code>MIX</code>.</td></tr>
+<tr><th scope="row">61 · Page 4 Pad 7</th><td><strong>GHOST PRINT</strong> — Colors each sound with the spectral imprint of earlier sounds. <code>IMPRINT</code>, <code>DECAY</code>, <code>SMEAR</code>, <code>PITCH</code>, <code>GATE</code>, <code>MIX</code>.</td></tr>
+<tr><th scope="row">62 · Page 4 Pad 8</th><td><strong>ROOM IN ROOM</strong> — Couples a small chamber to a larger space with cross-channel reflections. <code>INNER</code>, <code>OUTER</code>, <code>COUPLE</code>, <code>DECAY</code>, <code>DAMP</code>, <code>MIX</code>.</td></tr>
+<tr><th scope="row">63 · Page 4 Pad 9</th><td><strong>UNDERTOW</strong> — Lets a reversed trace rise in the gaps between sounds. <code>SENSE</code>, <code>RISE</code>, <code>MEMORY</code>, <code>FILTER</code>, <code>DUCK</code>, <code>MIX</code>.</td></tr>
+<tr><th scope="row">64 · Page 4 Pad 10</th><td><strong>PAPER MACHINE</strong> — Turns attacks into the sound of a small rattling mechanism. <code>MATERIAL</code>, <code>SIZE</code>, <code>RATTLE</code>, <code>DRIVE</code>, <code>WEAR</code>, <code>MIX</code>.</td></tr>
 </tbody></table>
 </section>
 <section id="check"><h2>Troubleshooting</h2>

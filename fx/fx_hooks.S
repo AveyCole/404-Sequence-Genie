@@ -76,11 +76,11 @@ fx_audio_hook_doom:
 .global fx_dt1_hook_doom
 .thumb_func
 fx_dt1_hook_doom:
-    /* Check param IDs 627..698 */
+    /* Check param IDs 627..722 */
     movw    ip, #627
     cmp     r1, ip
     blo     1f
-    movw    ip, #698
+    movw    ip, #722
     cmp     r1, ip
     bhi     1f
     movs    r0, #0
@@ -108,7 +108,7 @@ fx_dt1_hook_stock:
     movw    ip, #627
     cmp     r1, ip
     blo     1f
-    movw    ip, #698
+    movw    ip, #722
     cmp     r1, ip
     bhi     1f
     movs    r0, #0
@@ -315,7 +315,7 @@ fx_find_t3_led:
     cmp     r2, r4
     beq     2f
     adds    r6, #1
-    cmp     r6, #54
+    cmp     r6, #58
     blo     1b
     movs    r6, #0
 2:

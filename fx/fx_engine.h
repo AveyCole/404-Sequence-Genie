@@ -5,8 +5,8 @@
 
 /* Effect indices in the extended 61-entry native MFX list (4-page grid: 54/64 cells) */
 #define FX_STOCK_COUNT    49u
-#define FX_NEW_COUNT      12u
-#define FX_TOTAL_COUNT    61u
+#define FX_NEW_COUNT      16u
+#define FX_TOTAL_COUNT    65u
 
 #define FX_STOP           49u
 #define FX_DUB_DELAY      50u
@@ -21,10 +21,15 @@
 #define FX_TRANSIENT      59u
 #define FX_MICROLOOP      60u
 
-/* 72 new parameter IDs above stock 0..626 (627..698) */
+#define FX_GHOST_PRINT    61u
+#define FX_ROOM_IN_ROOM   62u
+#define FX_UNDERTOW       63u
+#define FX_PAPER_MACHINE  64u
+
+/* 96 new parameter IDs above stock 0..626 (627..722) */
 #define FX_PARAM_BASE     627u
-#define FX_PARAM_COUNT    72u
-#define FX_PARAM_TOTAL    699u
+#define FX_PARAM_COUNT    96u
+#define FX_PARAM_TOTAL    723u
 
 /* 5 effect slots (0 = Input FX, 1..4 = BUS 1..4); i.MX TX stems carry BUS 1 & BUS 2 */
 #define FX_SLOTS          5u
