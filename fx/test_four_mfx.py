@@ -24,6 +24,7 @@ def test(image, elf, mode):
         # Stock parameter 0x276 is indexed by bus at SYSPRM + 0x90.
         emu.w16(SYSPRM + 0x90 + 2 * bus, value)
 
+    emu.w16(SYSPRM + 0x70, 1)  # Type B isolates the buses.
     bus_switch(1, 1)
     bus_switch(2, 1)
     for pad in range(10):
@@ -78,6 +79,26 @@ def test(image, elf, mode):
             out = run_audio_blocks(emu, src[:64], src[:64], src[:64], src[:64], mode=mode)
             assert all(channel == src[:64] for channel in out[:4]), (effect, bus, "deselect")
         print(f"{mode}: FX {effect} bypass, resume and deselect passed on both buses", flush=True)
+
+
+    # In Type A, a signal on BUS 1 alone must reach the custom BUS 2 DSP.
+    src = signal[:512]
+    zero = [0] * len(src)
+    emu.w16(SYSPRM + 0xc6, 0)
+    emu.w16(SYSPRM + 0xc8, 64)
+    bus_switch(2, 1)
+    emu.call(emu.syms["fx_set_ctrl_ext"], 2, 64, 5, 100)
+    emu.w16(SYSPRM + 0x70, 0)
+    out = run_audio_blocks(emu, src, src, zero, zero, mode=mode)
+    assert out[0] == zero and any(out[2]) and out[2] != src
+    bus_switch(2, 0)
+    out = run_audio_blocks(emu, src, src, zero, zero, mode=mode)
+    assert out[0] == src and out[2] == zero
+    bus_switch(2, 1)
+    emu.w16(SYSPRM + 0x70, 1)
+    out = run_audio_blocks(emu, src, src, zero, zero, mode=mode)
+    assert out[0] == src and out[2] == zero
+    print(f"{mode}: Type A feeds BUS 1 into custom BUS 2; bypass and Type B preserve BUS 1")
 
 
 if __name__ == "__main__":

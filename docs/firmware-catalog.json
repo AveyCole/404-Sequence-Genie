@@ -19718,10 +19718,10 @@
       "noteRepeat": false,
       "label": "Stock Genie Suite v1.6 + 16 Custom MFX",
       "bytes": 3665632,
-      "hash": "44b6db8505051a4c08616fdba9e4caa222e83c35c1de5d42d55d2a7c9dffc2cd",
+      "hash": "9c3affd20abd8e365e7d1a1edf4fb01aa0c778c47b31666841a3e6edb84d33e7",
       "recipe": "patch",
       "detail": "Roland 5.52 with full Genie Suite, 16 custom native MFX across a 4-page MFX grid, Screen Genie USB mirror & remote control, and Cheddar Butt startup.",
-      "file": "firmware/stock-genie-fx-r6.patch",
+      "file": "firmware/stock-genie-fx-serial.patch",
       "parent": "build-02",
       "progress": "Applying 16 custom MFX, 4-page grid, and startup artwork…"
     },
@@ -19737,10 +19737,10 @@
       "noteRepeat": true,
       "label": "DOOM OS 0.7.4 + SP-ETC + Genie Suite v1.6 + 16 Custom MFX",
       "bytes": 3665744,
-      "hash": "b588ca55fec2a02862ae60c37bfe222999961c62af35c359988ed96f55db39d0",
+      "hash": "190e336cb3f30183db85e7b9ba6b7de922183490df9353d8f6119cb492156202",
       "recipe": "patch",
       "detail": "DOOM OS 0.7.4, SP-ETC v9.53, full Genie Suite, 16 custom native MFX across a 4-page MFX grid, Screen Genie USB mirror & remote control, and Cheddar Butt startup.",
-      "file": "firmware/doom074-genie-fx-r6.patch",
+      "file": "firmware/doom074-genie-fx-serial.patch",
       "parent": "build-07",
       "progress": "Applying 16 custom MFX, 4-page grid, and startup artwork…"
     }

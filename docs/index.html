@@ -69,6 +69,7 @@
   <section id="new-mfx" class="guide" aria-labelledby="mfx-title">
     <div class="section-title"><h2 id="mfx-title">16 Custom Native MFX &amp; 4th MFX Page</h2><a href="./genie-manual.html#mfx">All 16 FX &amp; knobs <span aria-hidden="true">↗</span></a></div>
     <p>Both Suite builds extend the native MFX list from 42 to 58 effects across four grid pages (<code>1/4</code>–<code>4/4</code>), running custom stereo DSP on <b>BUS 1</b> and <b>BUS 2</b>: <b>STOP</b>, <b>Dub Delay</b>, <b>Algoverb</b>, <b>Gated Verb</b>, <b>Pitched Echo</b>, and <b>FREEZE</b> on Page 3, plus <b>SPRING</b>, <b>SHIMMER</b>, <b>GEN LOSS</b>, <b>CHORD RESO</b>, <b>TRANSIENT</b>, <b>MICROLOOP</b>, <b>GHOST PRINT</b>, <b>ROOM IN ROOM</b>, <b>UNDERTOW</b>, and <b>PAPER MACHINE</b> on Page 4.</p>
+    <p><strong>Custom MFX routing:</strong> In Type A (serial), audio from BUS 1 feeds a custom effect on BUS 2 when BUS 1 is bypassed or uses a custom MFX. A stock effect on BUS 1 runs on a separate DSP, so its processed output cannot feed a custom MFX on BUS 2. To use a custom MFX on BUS 2 independently of BUS 1, select Type B (parallel) and assign the pad directly to BUS 2. For a serial chain with a stock effect, put the custom MFX on BUS 1 and the stock effect on BUS 2.</p>
     <p class="guide-note">Scroll past FREEZE with <kbd>VALUE</kbd> or <kbd>CTRL 3</kbd>, or hold <kbd>MFX + DJFX Looper + Isolator</kbd> to jump straight to Page 4.</p>
   </section>
 
@@ -125,6 +126,6 @@
 </footer>
 <script src="./kits-data.js" defer></script>
 <script src="./doomos-patcher.js" defer></script>
-<script type="module" src="./builder.js?v=1.6"></script>
+<script type="module" src="./builder.js?v=1.6-serial"></script>
 </body>
 </html>

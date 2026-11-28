@@ -337,6 +337,13 @@ void fx_process_block(int32_t *tx_buf, int32_t *stems_buf) {
     float buf_l[FX_BLOCK_FRAMES];
     float buf_r[FX_BLOCK_FRAMES];
 
+    /* Type A chains BUS 1 into BUS 2 on the external DSP. If BUS 1
+     * has no external effect, we already have its output in TX and can
+     * move that feed into the native BUS 2 effect before the handoff. */
+    const uint16_t routing = *(volatile const uint16_t *)(SYSPRM_ADDR + 0x70u);
+    const int serial_native = routing == 0 &&
+        (fx0 == 0 || fx0 >= FX_STOCK_COUNT || !fx_bus_enabled(0));
+
     for (uint32_t b = 0; b < FX_AUDIO_BUSES; ++b) {
         fx_bus_ctrl_t *bc = &g_fx.bus[b];
         uint32_t fx = selected[b];
@@ -372,10 +379,15 @@ void fx_process_block(int32_t *tx_buf, int32_t *stems_buf) {
         /* Extract stereo pair from packed SAI TX buffer (BUS 1 = words 2,3; BUS 2 = words 4,5) */
         uint32_t w_l = (b + 1u) * 2u;
         uint32_t w_r = w_l + 1u;
+        const int serial_feed = b == 1 && serial_native;
         const float inv_scale = 1.0f / 32768.0f;
         for (uint32_t i = 0; i < FX_BLOCK_FRAMES; ++i) {
             buf_l[i] = (float)tx_buf[i * 16u + w_l] * inv_scale;
             buf_r[i] = (float)tx_buf[i * 16u + w_r] * inv_scale;
+            if (serial_feed) {
+                buf_l[i] += (float)tx_buf[i * 16u + 2] * inv_scale;
+                buf_r[i] += (float)tx_buf[i * 16u + 3] * inv_scale;
+            }
         }
 
         /* One-pole parameter smoothing (~8 ms time constant: alpha ~= 0.15 per 1.33 ms block) */
@@ -410,9 +422,17 @@ void fx_process_block(int32_t *tx_buf, int32_t *stems_buf) {
             int32_t sr = fx_clamp_stem(buf_r[i] * 32768.0f);
             tx_buf[i * 16u + w_l] = sl;
             tx_buf[i * 16u + w_r] = sr;
+            if (serial_feed) {
+                tx_buf[i * 16u + 2] = 0;
+                tx_buf[i * 16u + 3] = 0;
+            }
             if (stems_buf) {
                 stems_buf[i * 14u + w_l] = sl;
                 stems_buf[i * 14u + w_r] = sr;
+                if (serial_feed) {
+                    stems_buf[i * 14u + 2] = 0;
+                    stems_buf[i * 14u + 3] = 0;
+                }
             }
         }
     }
